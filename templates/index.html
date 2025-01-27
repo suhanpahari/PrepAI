@@ -3,12 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Eye Tracker</title>
+    <title>Interview Interface</title>
+    <style>
+        /* CSS Variables for Themes */
+        :root {
+            --background-color: #121212;
+            --text-color: #f5f5f5;
+            --primary-color: #00adb5;
+            --secondary-color: #222831;
+            --accent-color: #00fff5;
+            --panel-background: #1f1f1f;
+            --note-background: #2c2c2c;
+            --button-hover: #028b8b;
+            --webcam-background: #1b1b1b;
+            --webcam-icon-color: #00adb5;
+        }
+
+        [data-theme="light"] {
+            --background-color: #fdfdfd;
+            --text-color: #333;
+            --primary-color: #0077b6;
+            --secondary-color: #e9ecef;
+            --accent-color: #0096c7;
+            --panel-background: #ffffff;
+            --note-background: #edf6ff;
+            --button-hover: #005f73;
+            --webcam-background: #f0f4ff;
+            --webcam-icon-color: #0077b6;
+        }
+
+        /* General Styles */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--panel-background);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav a {
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            flex: 1;
+            background: var(--panel-background);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid var(--secondary-color);
+            background: var(--secondary-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover {
+            background: var(--button-hover);
+        }
+
+        .question {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            color: var(--text-color);
+        }
+
+        .note {
+            background-color: var(--note-background);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            color: var(--text-color);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .note strong {
+            color: var(--primary-color);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            flex: 1;
+            background: var(--panel-background);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .webcam-container {
+            background: var(--webcam-background);
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .webcam-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: var(--webcam-icon-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .record-button {
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .record-button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .next-button {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        .next-button:hover {
+            background-color: var(--button-hover);
+        }
+    </style>
 </head>
 <body>
-    <h1>Real-Time Eye Tracking</h1>
-    <div>
-        <img src="{{ url_for('video_feed') }}" alt="Video Feed">
+    <header class="header">
+        <div class="logo">
+            <span>📝 Logoipsum</span>
+        </div>
+        <nav class="nav">
+            <button class="theme-toggle" id="theme-toggle">🌙</button>
+        </nav>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="left-panel">
+            <div class="question-tabs">
+                <button class="tab active">Question #1</button>
+                <button class="tab">Question #2</button>
+                <button class="tab">Question #3</button>
+                <button class="tab">Question #4</button>
+                <button class="tab">Question #5</button>
+            </div>
+
+            <div class="question">
+                What is Lorem Ipsum?
+            </div>
+
+            <div class="note">
+                <strong>Note:</strong> Click on Record Answer when you want to answer the question. At the end of the interview, we will provide feedback along with the correct answer for each question and your response for comparison.
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="webcam-container">
+                <div class="webcam-icon">
+                    🎥
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="button record-button">
+                    🎤 Record Answer
+                </button>
+                <button class="button next-button">
+                    Next Question
+                </button>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Check for saved theme in localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            body.setAttribute('data-theme', savedTheme);
+            themeToggle.textContent = savedTheme === 'light' ? '🌞' : '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'light' ? '🌙' : '🌞';
+            localStorage.setItem('theme', newTheme);
+        });
+    </script>
 </body>
 </html>

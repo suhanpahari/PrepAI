@@ -2,3 +2,5 @@
 .env
 *.ipynb
 image.py
+asses/
+*png
