@@ -1,0 +1,7 @@
+gradio==5.8.0
+PyYAML==6.0.2
+toml==0.10.2
+oceanai==1.0.0a46
+torch==2.2.2
+psutil==6.1.0
+beautifulsoup4==4.12.3
