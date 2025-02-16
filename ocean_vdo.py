@@ -56,9 +56,6 @@ class VideoAnalyzer:
         print("\n[RESULTS] Personality Predictions:")
         return results
 
-if __name__ == "__main__":
-    video_analyzer = VideoAnalyzer()
-    video_path = "sample_video.mp4"
-    predictions = video_analyzer.analyze_video(video_path)
-    if predictions:
-        print(predictions)
+video_analyzer = VideoAnalyzer()
+
+print(dir(video_analyzer._b5))
