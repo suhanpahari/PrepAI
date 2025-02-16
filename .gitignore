@@ -5,3 +5,4 @@ image.py
 asses/
 *png
 *.mp4
+*.pth
