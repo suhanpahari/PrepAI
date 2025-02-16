@@ -1,41 +1,64 @@
+import os
 from oceanai.modules.lab.build import Run
 
-_b5 = Run(
-    lang = 'en', 
-    color_simple = '#333', 
-    color_info = '#1776D2', 
-    color_err = '#FF0000', 
-    color_true = '#008001', 
-    bold_text = True, # Bold text
-    num_to_df_display = 30,
-    text_runtime = 'Runtime', 
-    metadata = True
-)
+class VideoAnalyzer:
+    def __init__(self):
+        self._b5 = Run(
+            lang='en',
+            color_simple='#333',
+            color_info='#1776D2',
+            color_err='#FF0000',
+            color_true='#008001',
+            bold_text=True,
+            num_to_df_display=30,
+            text_runtime='Runtime',
+            metadata=True
+        )
+        self._b5.path_to_save_ = './models'
+        self._b5.chunk_size_ = 2000000
+        self.load_model()
+        self.download_weights()
 
-res_load_video_model_hc = _b5.load_video_model_hc(
-    lang = 'en', 
-    show_summary = False, 
-    out = True, # Display
-    runtime = True, 
-    run = True 
-)
+    def load_model(self):
+        print("\n[INFO] Loading video model architecture...")
+        self._b5.load_video_model_hc(
+            lang='en',
+            show_summary=False,
+            out=True,
+            runtime=True,
+            run=True
+        )
+        print("[SUCCESS] Model architecture loaded.")
 
-_b5.video_model_hc_
+    def download_weights(self):
+        url = self._b5.weights_for_big5_['video']['fi']['hc']['googledisk']
+        print("\n[INFO] Checking and downloading model weights...")
+        self._b5.load_video_model_weights_hc(
+            url=url,
+            force_reload=False,
+            out=True,
+            runtime=True,
+            run=True
+        )
+        print("[SUCCESS] Model weights loaded.")
 
-_b5.video_model_hc_['openness']
-
-# Application to process video and predict personality traits
-def analyze_video(video_path):
-    res_load_video_model_hc = _b5.video_model_hc_(
-        path=video_path,
-        num_threads=6,
-        out=True,
-        runtime=True,
-        run=True
-    )
-    return res_load_video_model_hc
+    def analyze_video(self, video_path):
+        if not os.path.exists(video_path):
+            print("[ERROR] Video file not found.")
+            return None
+        print(f"\n[INFO] Analyzing video: {video_path}...")
+        results = self._b5.video_predict(
+            video_paths=[video_path],
+            out=True,
+            runtime=True,
+            run=True
+        )
+        print("\n[RESULTS] Personality Predictions:")
+        return results
 
 if __name__ == "__main__":
-    video_file = "sample_video.mp4"
-    result = analyze_video(video_file)
-    print("Predicted Personality Traits:", result)
+    video_analyzer = VideoAnalyzer()
+    video_path = "sample_video.mp4"
+    predictions = video_analyzer.analyze_video(video_path)
+    if predictions:
+        print(predictions)
