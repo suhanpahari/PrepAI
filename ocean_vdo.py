@@ -47,8 +47,8 @@ class VideoAnalyzer:
             print("[ERROR] Video file not found.")
             return None
         print(f"\n[INFO] Analyzing video: {video_path}...")
-        results = self._b5.video_predict(
-            video_paths=[video_path],
+        results = self._b5.get_video_union_predictions(
+            paths=[video_path],
             out=True,
             runtime=True,
             run=True
@@ -56,6 +56,9 @@ class VideoAnalyzer:
         print("\n[RESULTS] Personality Predictions:")
         return results
 
-video_analyzer = VideoAnalyzer()
-
-print(dir(video_analyzer._b5))
+if __name__ == "__main__":
+    video_analyzer = VideoAnalyzer()
+    video_path = "sample_video.mp4"
+    predictions = video_analyzer.analyze_video(video_path)
+    if predictions:
+        print(predictions)
