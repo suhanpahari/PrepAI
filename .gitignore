@@ -3,6 +3,8 @@
 *.ipynb
 image.py
 asses/
-*png
+*.png
 *.mp4
 models/
+logs/
+*.csv
