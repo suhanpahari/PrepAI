@@ -46,9 +46,10 @@ class VideoAnalyzer:
         if not os.path.exists(video_path):
             print("[ERROR] Video file not found.")
             return None
+            
         print(f"\n[INFO] Analyzing video: {video_path}...")
         results = self._b5.get_video_union_predictions(
-            paths=[video_path],
+            video_paths=[video_path],
             out=True,
             runtime=True,
             run=True
@@ -56,9 +57,10 @@ class VideoAnalyzer:
         print("\n[RESULTS] Personality Predictions:")
         return results
 
+# Usage
 if __name__ == "__main__":
     video_analyzer = VideoAnalyzer()
     video_path = "sample_video.mp4"
-    predictions = video_analyzer.analyze_video(video_path)
+    predictions = video_analyzer.analyze_video(video_path)  # Call analyze_video instead
     if predictions:
         print(predictions)
