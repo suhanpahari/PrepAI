@@ -9,3 +9,4 @@ models/
 logs/
 *.csv
 *.xml
+*.docx
