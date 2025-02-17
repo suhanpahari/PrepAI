@@ -8,3 +8,4 @@ asses/
 models/
 logs/
 *.csv
+*.xml
