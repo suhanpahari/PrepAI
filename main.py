@@ -1,6 +1,5 @@
 import random
 import subprocess
-import time
 import signal
 import speech_recognition as sr
 from text2speach import speak_input  # Importing speak_input function from text2speech.py
