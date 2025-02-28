@@ -5,3 +5,9 @@ oceanai==1.0.0a46
 torch==2.2.2
 psutil==6.1.0
 beautifulsoup4==4.12.3
+speech_recognition
+mediapipe
+subprocess
+langchain_groq
+subprocess
+random
