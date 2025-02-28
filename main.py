@@ -1,6 +1,7 @@
 import random
 import subprocess
 import time
+import signal
 import speech_recognition as sr
 from text2speach import speak_input  # Importing speak_input function from text2speech.py
 
@@ -47,32 +48,38 @@ def main():
     print("Starting eye tracking...")
     eye_tracking_process = subprocess.Popen(["python", "eye.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # Ask 5 questions
-    for i in range(5):
-        print(f"\nQuestion {i + 1}:")
-        
-        question = get_random_question()
-        if not question:
-            print("No questions available. Exiting.")
-            break
+    try:
+        # Ask 5 questions
+        for i in range(5):
+            print(f"\nQuestion {i + 1}:")
+            
+            question = get_random_question()
+            if not question:
+                print("No questions available. Exiting.")
+                break
 
-        print(question)
-        speak_input(question)  # Convert question to speech
+            print(question)
+            speak_input(question)  # Convert question to speech
 
-        # Ask if ready to answer
-        ready = input("Ready to answer? (y/n): ").strip().lower()
-        if ready != "y":
-            print("Skipping question...")
-            continue
+            # Ask if ready to answer
+            ready = input("Ready to answer? (y/n): ").strip().lower()
+            if ready != "y":
+                print("Skipping question...")
+                continue
 
-        # Start speech recognition
-        answer = recognize_speech()
-        print(f"Answer {i + 1}: {answer}")
+            # Start speech recognition
+            answer = recognize_speech()
+            print(f"Answer {i + 1}: {answer}")
 
-    # Terminate eye tracking
-    print("\nStopping eye tracking...")
-    eye_tracking_process.terminate()
-    print("Session completed.")
+    except KeyboardInterrupt:
+        print("\nSession interrupted by user.")
+
+    finally:
+        # Terminate eye tracking process properly
+        print("\nStopping eye tracking...")
+        eye_tracking_process.send_signal(signal.SIGTERM)  # Graceful termination
+        eye_tracking_process.wait()  # Wait for termination
+        print("Session completed.")
 
 if __name__ == "__main__":
     main()
