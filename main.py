@@ -5,7 +5,7 @@ import speech_recognition as sr
 from text2speach import speak_input  # Importing speak_input function from text2speech.py
 
 # Function to pick a random question
-def get_random_question(filename="questions.txt"):
+def get_random_question(filename="question.txt"):
     with open(filename, "r", encoding="utf-8") as file:
         questions = [q.strip() for q in file.readlines() if q.strip()]
     return random.choice(questions) if questions else None
