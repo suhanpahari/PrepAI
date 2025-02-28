@@ -3,6 +3,7 @@ import subprocess
 import signal
 import speech_recognition as sr
 from text2speach import speak_input  # Importing speak_input function from text2speech.py
+import platform
 
 # Function to pick a random question
 def get_random_question(filename="question.txt"):
@@ -31,6 +32,20 @@ def recognize_speech():
             print("Speech recognition service error.")
             return "Error in recognition"
 
+# Function to start eye tracking in a new window
+def start_eye_tracking():
+    if platform.system() == "Windows":
+        # For Windows, use 'start' to open a new terminal window
+        return subprocess.Popen(["start", "python", "eye.py"], shell=True)
+    elif platform.system() == "Darwin":  # macOS
+        # For macOS, use 'open' with a new Terminal window
+        return subprocess.Popen(["open", "-a", "Terminal", "python", "eye.py"])
+    elif platform.system() == "Linux":
+        # For Linux, use 'gnome-terminal' or 'xterm'
+        return subprocess.Popen(["gnome-terminal", "--", "python", "eye.py"])
+    else:
+        raise OSError("Unsupported operating system")
+
 # Main function
 def main():
     # Get participant details
@@ -43,9 +58,9 @@ def main():
         print("Exiting...")
         return
 
-    # Run eye.py in the background
-    print("Starting eye tracking...")
-    eye_tracking_process = subprocess.Popen(["python", "eye.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Run eye.py in a new window
+    print("Starting eye tracking in a new window...")
+    eye_tracking_process = start_eye_tracking()
 
     try:
         # Ask 5 questions
