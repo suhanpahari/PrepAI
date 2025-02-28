@@ -76,7 +76,7 @@ def main():
     finally:
         # Terminate eye tracking process properly
         print("\nStopping eye tracking...")
-        eye_tracking_process.send_signal(signal.SIGTERM)  # Graceful termination
+        eye_tracking_process.terminate()  # Graceful termination
         eye_tracking_process.wait()  # Wait for termination
         print("Session completed.")
 
