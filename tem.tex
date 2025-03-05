@@ -1,0 +1,132 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}       % For including images
+\usepackage{geometry}       % Adjust page margins
+\usepackage{array}          % Table formatting
+\usepackage{float}          % For image positioning
+\usepackage{wrapfig}        % For wrapping images
+\usepackage{xcolor}         % For color
+\usepackage{titlesec}       % For custom section headings
+\usepackage{booktabs}       % For professional tables
+\usepackage{fontawesome}    % For icons
+\usepackage{fancyhdr}       % For headers and footers
+\usepackage{draftwatermark} % For background watermark
+
+% Page setup
+\geometry{margin=1in, headsep=1.5cm} % Add 1cm gap after header
+\SetWatermarkText{PrepAI}
+\SetWatermarkScale{1.2}
+\SetWatermarkColor{lightgray!30}
+
+% Custom colors (using PrepAI branding colors)
+\definecolor{prepai-blue}{RGB}{255,20,147}  % Primary color
+\definecolor{prepai-gray}{RGB}{200, 200, 200} % Secondary color
+
+% Custom section headings
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{prepai-blue}}
+  {\thesection}{1em}{}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\includegraphics[width=2cm]{prepai.jpg}} % Add PrepAI logo
+\fancyhead[R]{\textbf{\color{prepai-blue} Interview Report}}
+\fancyfoot[L]{\textbf{\color{prepai-blue} PrepAI} \\ \textit{Innovating Assessments}}
+\fancyfoot[R]{\textbf{\color{prepai-blue} Page \thepage}}
+
+% Custom command for horizontal lines
+\newcommand{\sectionline}{\noindent\rule{\linewidth}{1pt}}
+
+\begin{document}
+
+% Title
+\begin{center}
+    \textbf{\LARGE\color{prepai-blue} Interview Report}\\[1em]
+    \textbf{Candidate Name:} \textbf{John Doe}\\
+    \textbf{Date:} \today\\
+\end{center}
+
+\sectionline % Horizontal line
+
+% % Candidate Information
+% \section*{Candidate Information}
+% \begin{flushleft}
+%     \textbf{Name:} John Doe \\
+%     \textbf{Age:} 28 \\
+%     \textbf{Position Applied:} Data Scientist \\
+%     \textbf{Experience:} 3 Years \\
+%     \textbf{Contact:} \texttt{john.doe@example.com} \\
+% \end{flushleft}
+
+% \vspace{1em}
+% \begin{wrapfigure}{r}{0.3\textwidth}
+%     \centering
+%     \includegraphics[width=0.3\textwidth]{dummy_candidate.jpg} \\ % Dummy candidate image
+%     \textit{\small Candidate's Photograph}
+% \end{wrapfigure}
+
+% \sectionline % Horizontal line
+
+\section*{Interview Questions and Answers}
+\begin{enumerate}
+    \item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 1:} What is Machine Learning? \\
+        \textbf{Candidate's Answer:} Machine Learning is about making computers think like humans. \\
+        \textbf{Correct Answer:} Machine Learning is a field of AI that enables systems to learn from data without being explicitly programmed.
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \includegraphics[width=0.9\textwidth]{dummy_graph1.jpg} \\
+            \small Figure: OCEAN analysis
+        \end{flushright}
+    \end{minipage}
+
+    \item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 2:} Explain the difference between Supervised and Unsupervised Learning. \\
+        \textbf{Candidate's Answer:} Supervised learning is better than unsupervised learning. \\
+        \textbf{Correct Answer:} Supervised learning uses labeled data, whereas unsupervised learning finds patterns in unlabeled data.
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \includegraphics[width=0.9\textwidth]{dummy_graph2.jpg} \\
+            \small Figure: OCEAN analysis
+        \end{flushright}
+    \end{minipage}
+
+    \item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 3:} How does a Decision Tree work? \\
+        \textbf{Candidate's Answer:} It decides things based on conditions. \\
+        \textbf{Correct Answer:} A Decision Tree splits data into branches based on feature values, forming a tree structure for decision-making.
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \includegraphics[width=0.9\textwidth]{dummy_graph3.jpg} \\
+            \small Figure: OCEAN analysis
+        \end{flushright}
+    \end{minipage}
+
+\end{enumerate}
+
+
+% \sectionline % Horizontal line
+
+% Final Remarks
+\newpage
+\section*{Final Remarks}
+\begin{itemize}
+    \item \textbf{\faUser\ Performance:} Satisfactory, but needs improvement in conceptual understanding.
+    \item \textbf{\faGraduationCap\ Recommendation:} Recommended for further training.
+\end{itemize}
+
+\vspace{2em}
+\noindent\textbf{Interviewer Name:} Jane Smith \\
+\textbf{Signature:} \makebox[3cm]{\hrulefill} \\
+\textbf{Date:} \today
+
+\end{document}
