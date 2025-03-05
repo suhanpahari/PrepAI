@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepAI - Log In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Themes (Matching Landing Page) */
+        :root {
+            --background-color: #fff;
+            --text-color: #000;
+            --primary-color: #a1e8b7; /* Light green from landing page button */
+            --secondary-color: #e5e7eb; /* Light gray for grid and borders */
+            --accent-color: #86c891; /* Darker green for 2D effects */
+            --panel-background: #fff;
+            --note-background: #f5f5f5;
+            --button-hover: #86c891;
+            --webcam-background: #f0f4ff;
+            --webcam-icon-color: #000;
+        }
+
+        [data-theme="light"] {
+            --background-color: #fff;
+            --text-color: #000;
+            --primary-color: #a1e8b7;
+            --secondary-color: #e5e7eb;
+            --accent-color: #86c891;
+            --panel-background: #fff;
+            --note-background: #f5f5f5;
+            --button-hover: #86c891;
+            --webcam-background: #f0f4ff;
+            --webcam-icon-color: #000;
+        }
+
+        /* General Styles */
+        body {
+            font-family: 'Roboto Mono', monospace;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Grid Background (Graph Paper) */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.5'%3E%3Crect x='0' width='1' height='20'/%3E%3Crect y='0' width='20' height='1'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 20px 20px;
+            z-index: 0;
+        }
+
+        /* Login Container */
+        .login-container {
+            position: relative;
+            z-index: 10;
+            background: var(--panel-background);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 3px 3px 0 var(--secondary-color); /* 2D shadow */
+            transition: transform 0.2s;
+        }
+
+        .login-container:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0 var(--secondary-color);
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--text-color);
+        }
+
+        .social-login {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 0 var(--accent-color);
+        }
+
+        .social-btn:hover {
+            background: var(--button-hover);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--accent-color);
+        }
+
+        .social-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .email-login {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .email-login a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .email-login a:hover {
+            color: var(--button-hover);
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-color);
+            margin-top: 20px;
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--button-hover);
+        }
+    </style>
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
+
+    <div class="login-container">
+        <h1 class="login-title">Log In to PrepAI</h1>
+
+        <div class="social-login">
+            <button class="social-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Twitter-logo.svg" alt="X Logo"> Log In with X
+            </button>
+            <button class="social-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo"> Log In with Google
+            </button>
+            <button class="social-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Facebook_messenger.svg" alt="Facebook Logo"> Log In with Facebook
+            </button>
+        </div>
+
+        <div class="email-login">
+            <a href="email-login.html">Or log in with Email</a>
+        </div>
+
+        <div class="footer">
+            <p>Don’t have an account? <a href="#">Sign Up</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Themes (Matching Landing Page) */
+        :root {
+            --background-color: #fff;
+            --text-color: #000;
+            --primary-color: #a1e8b7; /* Light green from landing page button */
+            --secondary-color: #e5e7eb; /* Light gray for grid and borders */
+            --accent-color: #86c891; /* Darker green for 2D effects */
+            --panel-background: #fff;
+            --note-background: #f5f5f5;
+            --button-hover: #86c891;
+            --webcam-background: #f0f4ff;
+            --webcam-icon-color: #000;
+        }
+
+        [data-theme="light"] {
+            --background-color: #fff;
+            --text-color: #000;
+            --primary-color: #a1e8b7;
+            --secondary-color: #e5e7eb;
+            --accent-color: #86c891;
+            --panel-background: #fff;
+            --note-background: #f5f5f5;
+            --button-hover: #86c891;
+            --webcam-background: #f0f4ff;
+            --webcam-icon-color: #000;
+        }
+
+        /* General Styles */
+        body {
+            font-family: 'Roboto Mono', monospace;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Grid Background (Graph Paper) */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.5'%3E%3Crect x='0' width='1' height='20'/%3E%3Crect y='0' width='20' height='1'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 20px 20px;
+            z-index: 0;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--panel-background);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 2D shadow */
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+
+        .nav button:hover {
+            color: var(--primary-color);
+        }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            flex: 1;
+            background: var(--panel-background);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 3px 3px 0 var(--secondary-color); /* 2D shadow */
+            transition: transform 0.2s;
+        }
+
+        .left-panel:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0 var(--secondary-color);
+        }
+
+        .question-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid var(--secondary-color);
+            background: var(--secondary-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 0 var(--accent-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover {
+            background: var(--button-hover);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 var(--accent-color);
+        }
+
+        .question {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: var(--text-color);
+        }
+
+        .answer-area {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 12px;
+            background: var(--note-background);
+            color: var(--text-color);
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+            box-shadow: 2px 2px 0 var(--secondary-color);
+            transition: transform 0.2s;
+        }
+
+        .answer-area:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--accent-color);
+        }
+
+        .answer-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .transcript-note {
+            font-size: 14px;
+            color: var(--text-color);
+            margin-top: 10px;
+            opacity: 0.7;
+        }
+
+        .note {
+            background-color: var(--note-background);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            color: var(--text-color);
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 2px 2px 0 var(--secondary-color);
+        }
+
+        .note strong {
+            color: var(--primary-color);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            flex: 1;
+            background: var(--panel-background);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 3px 3px 0 var(--secondary-color); /* 2D shadow */
+            transition: transform 0.2s;
+        }
+
+        .right-panel:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0 var(--secondary-color);
+        }
+
+        .webcam-container {
+            background: var(--webcam-background);
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 2px 2px 0 var(--secondary-color);
+        }
+
+        .webcam-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: var(--webcam-icon-color);
+            animation: pulse 2s infinite;
+            box-shadow: 2px 2px 0 var(--accent-color);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 0 var(--accent-color);
+        }
+
+        .record-button {
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .record-button:hover {
+            background-color: var(--button-hover);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--accent-color);
+        }
+
+        .next-button {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        .next-button:hover {
+            background-color: var(--button-hover);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--accent-color);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--panel-background);
+            padding: 20px 40px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--button-hover);
+        }
+    </style>
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
+
+    <header class="header">
+        <div class="logo">PrepAI</div>
+        <!-- <nav class="nav">
+            <button class="theme-toggle" id="theme-toggle">🌙</button>
+        </nav> -->
+    </header>
+
+    <div class="content-wrapper">
+        <div class="left-panel">
+            <div class="question-tabs">
+                <button class="tab active">Question #1</button>
+                <button class="tab">Question #2</button>
+                <button class="tab">Question #3</button>
+                <button class="tab">Question #4</button>
+                <button class="tab">Question #5</button>
+            </div>
+
+            <div class="question">
+                What is Lorem Ipsum?
+            </div>
+
+            <div class="answer-label">Your Response</div>
+            <div class="answer-area" contenteditable="true"></div>
+            <div class="transcript-note">This area will display the voice transcript of your response after recording.</div>
+
+            <div class="note">
+                <strong>Note:</strong> Click on Record Answer when you want to answer the question. At the end of the interview, we will provide feedback along with the correct answer for each question and your response for comparison.
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="webcam-container">
+                <div class="webcam-icon">🎥</div>
+            </div>
+
+            <div class="controls">
+                <button class="button record-button">🎤 Record Answer</button>
+                <button class="button next-button">Next Question</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Ready to ace your interview? <a href="#">Learn More</a> | <a href="#">Contact Us</a> | © 2025 PrepAI</p>
+    </footer>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Check for saved theme in localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            body.setAttribute('data-theme', savedTheme);
+            themeToggle.textContent = savedTheme === 'light' ? '🌞' : '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'light' ? '🌙' : '🌞';
+            localStorage.setItem('theme', newTheme);
+        });
+    </script>
+</body>
+</html>
