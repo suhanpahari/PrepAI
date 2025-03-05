@@ -1,6 +1,5 @@
 import random
 import subprocess
-import signal
 import speech_recognition as sr
 from text2speach import speak_input  # Importing speak_input function from text2speech.py
 import platform
@@ -45,6 +44,19 @@ def start_eye_tracking():
         return subprocess.Popen(["gnome-terminal", "--", "python", "eye.py"])
     else:
         raise OSError("Unsupported operating system")
+    
+def start_face_tracking():
+    if platform.system() == "Windows":
+        # For Windows, use 'start' to open a new terminal window
+        return subprocess.Popen(["start", "python", "face.py"], shell=True)
+    elif platform.system() == "Darwin":  # macOS
+        # For macOS, use 'open' with a new Terminal window
+        return subprocess.Popen(["open", "-a", "Terminal", "python", "face.py"])
+    elif platform.system() == "Linux":
+        # For Linux, use 'gnome-terminal' or 'xterm'
+        return subprocess.Popen(["gnome-terminal", "--", "python", "face.py"])
+    else:
+        raise OSError("Unsupported operating system")
 
 # Main function
 def main():
@@ -59,8 +71,9 @@ def main():
         return
 
     # Run eye.py in a new window
-    print("Starting eye tracking in a new window...")
+    print("Starting eye and face tracking in a new window...")
     eye_tracking_process = start_eye_tracking()
+    face_taracking_process = start_face_tracking()
 
     try:
         # Ask 5 questions
@@ -91,8 +104,10 @@ def main():
     finally:
         # Terminate eye tracking process properly
         print("\nStopping eye tracking...")
-        eye_tracking_process.terminate()  # Graceful termination
-        eye_tracking_process.wait()  # Wait for termination
+        eye_tracking_process.terminate()
+        face_taracking_process.terminate()  # Graceful termination
+        eye_tracking_process.wait()
+        face_taracking_process.wait()  # Wait for termination
         print("Session completed.")
 
 if __name__ == "__main__":
