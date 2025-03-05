@@ -1,0 +1,155 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{fontawesome}
+\usepackage{fancyhdr}
+\usepackage{draftwatermark}
+
+\geometry{margin=1in, headsep=1.5cm}
+\SetWatermarkText{PrepAI}
+\SetWatermarkScale{1.2}
+\SetWatermarkColor{lightgray!30}
+
+\definecolor{prepai-blue}{RGB}{255,20,147}
+\definecolor{prepai-gray}{RGB}{200, 200, 200}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{prepai-blue}}
+  {\thesection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\includegraphics[width=2cm]{PrepAI.jpg}}
+\fancyhead[R]{\textbf{\color{prepai-blue} Interview Report}}
+\fancyfoot[L]{\textbf{\color{prepai-blue} PrepAI} \\ \textit{Innovating Assessments}}
+\fancyfoot[R]{\textbf{\color{prepai-blue} Page \thepage}}
+
+\newcommand{\sectionline}{\noindent\rule{\linewidth}{1pt}}
+
+\begin{document}
+
+\begin{center}
+    \textbf{\LARGE\color{prepai-blue} Interview Report}\\[1em]
+    \textbf{Candidate Name:} soham\\
+    \textbf{Participant ID:} 34\\
+    \textbf{Date:} March 05, 2025\\
+\end{center}
+
+\sectionline
+
+\section*{Interview Questions and Answers}
+\begin{enumerate}
+\item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 1:} What is the difference between TCP and UDP? \\
+        \textbf{Candidate's Answer:} BF chahie \\
+        \textbf{Correct Answer:} Evaluation error
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \small Score: N/A
+        \end{flushright}
+    \end{minipage}
+\item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 2:} What are deadlocks, and how can they be prevented? \\
+        \textbf{Candidate's Answer:} various steps to prevent deadlocks on its semaphore then there is ABCD \\
+        \textbf{Correct Answer:} Deadlocks occur when two or more processes are blocked indefinitely, waiting for each other to release the resources that each needs.  
+
+Here's a breakdown and some prevention strategies:
+
+**What are Deadlocks?**
+
+Imagine two cars trying to pass each other on a narrow road. They're both stuck, unable to move forward because they're blocking each other. This is similar to a deadlock in computer science. 
+
+* **Mutual Exclusion:**  A resource can only be held by one process at a time.
+* **Hold and Wait:** A process holding at least one resource is waiting to acquire additional resources held by other processes.
+* **No Preemption:** Resources cannot be forcibly taken away from a process.
+* **Circular Wait:** A closed chain of processes exists, where each process is waiting for a resource held by the next process in the chain.
+
+**Prevention Techniques**
+
+1. **Resource Ordering:** Enforce a specific order for acquiring resources. If processes always request resources in the same order, circular wait can be avoided.
+
+2. **Resource Allocation Graph:**  Use a graph to visualize resource allocation. Deadlocks can be detected and prevented by analyzing potential cycles in the graph.
+
+3. **Preemption:** Allow the operating system to forcibly take away resources from a process if it's holding them for too long or if a deadlock is imminent.
+
+4. **Timeout:** Set a time limit for processes to acquire resources. If a process doesn't acquire the needed resources within the time limit, it releases its current holdings and tries again.
+
+5. **Deadlock Detection and Recovery:**
+
+   * **Detection:**  Continuously monitor the system for potential deadlocks using algorithms.
+   * **Recovery:** If a deadlock is detected, terminate one or more of the involved processes.
+
+
+
+Let me know if you'd like more detail on any of these prevention techniques!
+
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \small Score: 0.5
+        \end{flushright}
+    \end{minipage}
+\item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 3:} What is the difference between depth-first search (DFS) and breadth-first search (BFS)? \\
+        \textbf{Candidate's Answer:} search help us to make ABC and breadth first search help us to make def \\
+        \textbf{Correct Answer:} Evaluation error
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \small Score: N/A
+        \end{flushright}
+    \end{minipage}
+\item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 4:} What is virtual memory, and how does it work? \\
+        \textbf{Candidate's Answer:} know how does it work \\
+        \textbf{Correct Answer:} Evaluation error
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \small Score: N/A
+        \end{flushright}
+    \end{minipage}
+\item 
+    \begin{minipage}{0.7\textwidth}
+        \textbf{Question 5:} What is the difference between an array and a linked list? \\
+        \textbf{Candidate's Answer:} Unclear response \\
+        \textbf{Correct Answer:} Evaluation error
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.28\textwidth}
+        \begin{flushright}
+            \small Score: N/A
+        \end{flushright}
+    \end{minipage}
+\end{enumerate}
+
+\sectionline
+
+\newpage
+\section*{Final Remarks}
+\begin{itemize}
+    \item \textbf{\faUser\ Performance:} Needs Improvement
+    \item \textbf{\faGraduationCap\ Recommendation:} Recommended for further training
+\end{itemize}
+
+\vspace{2em}
+\noindent\textbf{Interviewer Name:} Automated System \\
+\textbf{Signature:} \makebox[3cm]{\hrulefill} \\
+\textbf{Date:} March 05, 2025
+
+\end{document}
