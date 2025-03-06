@@ -1,31 +1,38 @@
-import speech_recognition as sr
+import whisper
+import sounddevice as sd
+import numpy as np
+import wave
 
-def listen(language_code):
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        print("Speak now...")
-        audio = recognizer.listen(source)
-        try:
-            return recognizer.recognize_google(audio, language=language_code)
-        except sr.UnknownValueError:
-            print("Sorry, I could not understand the audio.")
-            return ""
-        except sr.RequestError:
-            print("Sorry, there was an issue with the request.")
-            return ""
+# Load the Whisper model
+model = whisper.load_model("base")
+
+def record_audio(filename, duration=5, samplerate=16000):
+    print("Speak now...")
+    recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype=np.int16)
+    sd.wait()
+    
+    with wave.open(filename, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(samplerate)
+        wf.writeframes(recording.tobytes())
+
+def transcribe_audio(filename):
+    result = model.transcribe(filename)
+    return result["text"].strip()
 
 if __name__ == "__main__":
-    lang_code = "en-US"
     lang_name = "English (United States)"
-    
-    print(f"Listening in {lang_name} ({lang_code})...\n")
+    print(f"Listening in {lang_name}...")
     
     while True:
-        command = listen(lang_code)
+        audio_file = "temp.wav"
+        record_audio(audio_file)
+        command = transcribe_audio(audio_file)
+        
         if command:
             print(f"You said: {command}")
         
-        # Add a condition to break the loop if needed
         if command.lower() == "exit":
             print("Exiting...")
             break
