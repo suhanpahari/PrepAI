@@ -6,7 +6,7 @@ import wave
 # Load the Whisper model
 model = whisper.load_model("base")
 
-def record_audio(filename, duration=5, samplerate=16000):
+def record_audio(filename, duration=35, samplerate=16000):
     print("Speak now...")
     recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype=np.int16)
     sd.wait()
