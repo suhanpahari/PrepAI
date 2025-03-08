@@ -1,10 +1,11 @@
 import random
 import subprocess
-import speech_recognition as sr
-from text2speach import speak_input
 import platform
+from text2speach import speak_input
 from llm_add import llm
 from langchain_core.prompts import PromptTemplate
+# Import functions from transcript.py
+from Transcript import record_audio, transcribe_audio
 
 def get_random_question(filename="question.txt"):
     try:
@@ -16,24 +17,20 @@ def get_random_question(filename="question.txt"):
         return None
 
 def recognize_speech():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        print("Listening... Speak now.")
-        recognizer.adjust_for_ambient_noise(source)
-        try:
-            audio = recognizer.listen(source, timeout=10, phrase_time_limit=15)
-            print("Processing speech...")
-            text = recognizer.recognize_google(audio)
-            return text
-        except sr.WaitTimeoutError:
-            print("No speech detected.")
+    audio_file = "temp.wav"
+    print("Listening... Speak now.")
+    try:
+        # Record audio for 15 seconds (adjustable as needed)
+        record_audio(audio_file, duration=15)
+        print("Processing speech...")
+        text = transcribe_audio(audio_file)
+        if not text:
+            print("No speech detected or transcription failed.")
             return "No response"
-        except sr.UnknownValueError:
-            print("Could not understand the response.")
-            return "Unclear response"
-        except sr.RequestError:
-            print("Speech recognition service error.")
-            return "Error in recognition"
+        return text
+    except Exception as e:
+        print(f"Error in transcription: {e}")
+        return "Error in recognition"
 
 def start_eye_tracking():
     try:

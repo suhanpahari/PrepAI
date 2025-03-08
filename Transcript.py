@@ -21,18 +21,3 @@ def transcribe_audio(filename):
     result = model.transcribe(filename)
     return result["text"].strip()
 
-if __name__ == "__main__":
-    lang_name = "English (United States)"
-    print(f"Listening in {lang_name}...")
-    
-    while True:
-        audio_file = "temp.wav"
-        record_audio(audio_file)
-        command = transcribe_audio(audio_file)
-        
-        if command:
-            print(f"You said: {command}")
-        
-        if command.lower() == "exit":
-            print("Exiting...")
-            break
