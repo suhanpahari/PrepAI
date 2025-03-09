@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrepAI</title>
+    <title>PrepAI - Interview</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS Variables for Themes (Matching Landing Page) */
+        /* CSS Variables for Dark Theme */
         :root {
-            --background-color: #fff;
-            --text-color: #000;
+            --background-color: #1a1a1a;
+            --text-color: #e0e0e0;
             --primary-color: #a1e8b7; /* Light green from landing page button */
-            --secondary-color: #e5e7eb; /* Light gray for grid and borders */
+            --secondary-color: #2d2d2d; /* Dark gray for grid and borders */
             --accent-color: #86c891; /* Darker green for 2D effects */
-            --panel-background: #fff;
-            --note-background: #f5f5f5;
+            --panel-background: #2d2d2d;
+            --note-background: #3d3d3d;
             --button-hover: #86c891;
-            --webcam-background: #f0f4ff;
-            --webcam-icon-color: #000;
+            --webcam-background: #3d3d3d;
+            --webcam-icon-color: #a1e8b7;
         }
 
         [data-theme="light"] {
@@ -40,9 +40,11 @@
             padding: 0;
             background-color: var(--background-color);
             color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
             position: relative;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         a {
@@ -54,188 +56,69 @@
         .grid-bg {
             position: absolute;
             inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.5'%3E%3Crect x='0' width='1' height='20'/%3E%3Crect y='0' width='20' height='1'/%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232d2d2d' fill-opacity='0.3'%3E%3Crect x='0' width='1' height='20'/%3E%3Crect y='0' width='20' height='1'/%3E%3C/g%3E%3C/svg%3E");
             background-size: 20px 20px;
             z-index: 0;
         }
 
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            background-color: var(--panel-background);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 2D shadow */
+        /* Video Call Container */
+        .video-call-container {
             position: relative;
             z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
         }
 
+        /* Logo */
         .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             font-size: 24px;
             font-weight: bold;
             color: var(--primary-color);
+            z-index: 20;
         }
 
-        .nav {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .nav button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 20px;
-            color: var(--text-color);
-            transition: color 0.3s ease;
-        }
-
-        .nav button:hover {
-            color: var(--primary-color);
-        }
-
-        /* Content Wrapper */
-        .content-wrapper {
-            display: flex;
-            gap: 30px;
-            padding: 40px;
-            max-width: 1600px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Left Panel */
-        .left-panel {
-            flex: 1;
-            background: var(--panel-background);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 3px 3px 0 var(--secondary-color); /* 2D shadow */
-            transition: transform 0.2s;
-        }
-
-        .left-panel:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 5px 5px 0 var(--secondary-color);
-        }
-
-        .question-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            border-radius: 25px;
-            border: 1px solid var(--secondary-color);
-            background: var(--secondary-color);
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 2px 2px 0 var(--accent-color);
-        }
-
-        .tab.active {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-            color: white;
-        }
-
-        .tab:hover {
-            background: var(--button-hover);
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0 var(--accent-color);
-        }
-
-        .question {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            color: var(--text-color);
-        }
-
-        .answer-area {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid var(--secondary-color);
-            border-radius: 12px;
-            background: var(--note-background);
-            color: var(--text-color);
-            font-size: 16px;
-            resize: vertical;
-            min-height: 100px;
-            box-shadow: 2px 2px 0 var(--secondary-color);
-            transition: transform 0.2s;
-        }
-
-        .answer-area:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0 var(--accent-color);
-        }
-
-        .answer-label {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--text-color);
-            margin-bottom: 10px;
-        }
-
-        .transcript-note {
-            font-size: 14px;
-            color: var(--text-color);
-            margin-top: 10px;
-            opacity: 0.7;
-        }
-
-        .note {
-            background-color: var(--note-background);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 30px 0;
-            color: var(--text-color);
-            font-size: 14px;
-            line-height: 1.6;
-            box-shadow: 2px 2px 0 var(--secondary-color);
-        }
-
-        .note strong {
-            color: var(--primary-color);
-        }
-
-        /* Right Panel */
-        .right-panel {
-            flex: 1;
-            background: var(--panel-background);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 3px 3px 0 var(--secondary-color); /* 2D shadow */
-            transition: transform 0.2s;
-        }
-
-        .right-panel:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 5px 5px 0 var(--secondary-color);
-        }
-
-        .webcam-container {
+        /* Interviewer Video (AI Agent) */
+        .interviewer-video {
             background: var(--webcam-background);
-            aspect-ratio: 16/9;
+            flex: 1;
             border-radius: 12px;
-            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 3px 3px 0 var(--secondary-color);
+            transition: transform 0.2s;
+            position: relative; /* For absolute positioning of bot icon */
+            min-height: 0;
+        }
+
+        .interviewer-video:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 5px 5px 0 var(--secondary-color);
+        }
+
+        .interviewer-content {
+            width: 100%;
+            height: 100%; /* Take up available space above control bar */
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            box-shadow: 2px 2px 0 var(--secondary-color);
+            position: relative; /* Ensure bot icon is positioned relative to this */
         }
 
+        .interviewer-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Bot Icon */
         .webcam-icon {
             width: 80px;
             height: 80px;
@@ -248,61 +131,92 @@
             color: var(--webcam-icon-color);
             animation: pulse 2s infinite;
             box-shadow: 2px 2px 0 var(--accent-color);
+            position: absolute; /* Position relative to interviewer-video */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center it perfectly */
+            z-index: 25; /* Above content but below control bar */
         }
 
         @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-            100% {
-                transform: scale(1);
-            }
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
         }
 
-        .controls {
+        /* Self Video Box */
+        .self-video {
+            background: var(--webcam-background);
+            width: 200px;
+            height: 150px;
+            border-radius: 12px;
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            justify-content: center;
+            box-shadow: 2px 2px 0 var(--secondary-color);
+            transition: transform 0.2s;
+            z-index: 15;
         }
 
-        .button {
-            padding: 12px 24px;
+        .self-video:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--secondary-color);
+        }
+
+        .self-placeholder {
+            font-size: 16px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        /* Control Bar - At the bottom of interviewer-video */
+        .control-bar {
+            background: var(--panel-background);
             border-radius: 25px;
+            padding: 10px 20px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 2px 2px 0 var(--secondary-color);
+            z-index: 30;
+            width: auto;
+            min-width: 300px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border-radius: 20px;
             border: none;
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
+            background: var(--secondary-color);
+            color: var(--text-color);
             transition: all 0.3s ease;
             box-shadow: 2px 2px 0 var(--accent-color);
-        }
-
-        .record-button {
-            background-color: var(--primary-color);
-            color: white;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .record-button:hover {
-            background-color: var(--button-hover);
+        .control-btn:hover {
+            background: var(--button-hover);
             transform: translate(-2px, -2px);
             box-shadow: 4px 4px 0 var(--accent-color);
         }
 
-        .next-button {
-            background-color: var(--secondary-color);
-            color: var(--text-color);
+        .control-btn.disconnect {
+            background: #ff4d4f; /* Red for disconnect */
+            color: white;
         }
 
-        .next-button:hover {
-            background-color: var(--button-hover);
+        .control-btn.disconnect:hover {
+            background: #d9363e;
             transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0 var(--accent-color);
+            box-shadow: 4px 4px 0 #b32d2e;
         }
 
         /* Footer */
@@ -310,7 +224,6 @@
             background: var(--panel-background);
             padding: 20px 40px;
             text-align: center;
-            margin-top: 30px;
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
             position: relative;
             z-index: 10;
@@ -319,6 +232,7 @@
         .footer p {
             font-size: 14px;
             color: var(--text-color);
+            margin: 0;
         }
 
         .footer a {
@@ -331,51 +245,74 @@
         .footer a:hover {
             color: var(--button-hover);
         }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .control-bar {
+                width: 90%;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .control-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            .self-video {
+                width: 150px;
+                height: 120px;
+                bottom: 20px;
+            }
+
+            .webcam-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Grid Background -->
     <div class="grid-bg"></div>
 
-    <header class="header">
+    <!-- Video Call Container -->
+    <div class="video-call-container">
+        <!-- PrepAI Logo -->
         <div class="logo">PrepAI</div>
-        <!-- <nav class="nav">
-            <button class="theme-toggle" id="theme-toggle">🌙</button>
-        </nav> -->
-    </header>
 
-    <div class="content-wrapper">
-        <div class="left-panel">
-            <div class="question-tabs">
-                <button class="tab active">Question #1</button>
-                <button class="tab">Question #2</button>
-                <button class="tab">Question #3</button>
-                <button class="tab">Question #4</button>
-                <button class="tab">Question #5</button>
+        <!-- Interviewer Video (AI Agent) -->
+        <div class="interviewer-video">
+            <!-- Interviewer Content (Placeholder or Image) -->
+            <div class="interviewer-content">
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-color);">
+                    AI Interviewer
+                </div>
             </div>
-
-            <div class="question">
-                What is Lorem Ipsum?
-            </div>
-
-            <div class="answer-label">Your Response</div>
-            <div class="answer-area" contenteditable="true"></div>
-            <div class="transcript-note">This area will display the voice transcript of your response after recording.</div>
-
-            <div class="note">
-                <strong>Note:</strong> Click on Record Answer when you want to answer the question. At the end of the interview, we will provide feedback along with the correct answer for each question and your response for comparison.
+            <!-- Bot Icon -->
+            <div class="webcam-icon">🤖</div>
+            <!-- Control Bar at the Bottom -->
+            <div class="control-bar">
+                <button class="control-btn">
+                    🎙️ Mute Mic
+                    <!-- JavaScript would toggle mic on/off -->
+                </button>
+                <button class="control-btn">
+                    📷 Camera Off
+                    <!-- JavaScript would toggle camera on/off -->
+                </button>
+                <button class="control-btn disconnect" onclick="window.location.href='index.html'">
+                    📞 Disconnect
+                    <!-- Redirects to landing page; real implementation would disconnect WebRTC -->
+                </button>
             </div>
         </div>
 
-        <div class="right-panel">
-            <div class="webcam-container">
-                <div class="webcam-icon">🎥</div>
-            </div>
-
-            <div class="controls">
-                <button class="button record-button">🎤 Record Answer</button>
-                <button class="button next-button">Next Question</button>
-            </div>
+        <!-- Self Video Box -->
+        <div class="self-video">
+            <div class="self-placeholder">Your Video (Placeholder)</div>
+            <!-- Replace with <video> tag for real self-video feed -->
         </div>
     </div>
 
@@ -383,26 +320,5 @@
     <footer class="footer">
         <p>Ready to ace your interview? <a href="#">Learn More</a> | <a href="#">Contact Us</a> | © 2025 PrepAI</p>
     </footer>
-
-    <script>
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-
-        // Check for saved theme in localStorage
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            body.setAttribute('data-theme', savedTheme);
-            themeToggle.textContent = savedTheme === 'light' ? '🌞' : '🌙';
-        }
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            body.setAttribute('data-theme', newTheme);
-            themeToggle.textContent = newTheme === 'light' ? '🌙' : '🌞';
-            localStorage.setItem('theme', newTheme);
-        });
-    </script>
 </body>
 </html>
