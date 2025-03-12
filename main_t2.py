@@ -1,22 +1,27 @@
 import random
 import os
+import time
+import threading
+import cv2
 from datetime import datetime
 from text2speach import speak_input
 from llm_add import llm
 from langchain_core.prompts import PromptTemplate
 from Transcript import record_audio, transcribe_audio
-import cv2
-import time
-import threading  
 
-# Define some personality-based questions
+# Personality questions
 PERSONALITY_QUESTIONS = [
-    "What motivates you to work hard?",
-    "Describe a challenge you've faced and how you overcame it.",
-    "How do you handle feedback?"
+    "How would you describe your approach to solving problems?",
+    "Do you prefer working alone or in a team, and why?",
+    "What motivates you to do your best work?"
 ]
 
-# Function to get a random question from a file
+# Keywords for matching
+KEYWORD_LIST = [
+    "science", "math", "history", "literature", "technology", 
+    "art", "music", "sports", "programming", "engineering"
+]
+
 def get_random_question(filename="question.txt"):
     try:
         with open(filename, "r", encoding="utf-8") as file:
@@ -108,8 +113,45 @@ def stop_video_recording(cap, out):
     cv2.destroyAllWindows()
     print("Video recording stopped")
 
-# Main function
+def keyword(text):
+    """Extract keywords from response"""
+    text = text.lower()
+    matched_keywords = [kw for kw in KEYWORD_LIST if kw in text]
+    return matched_keywords if matched_keywords else ["general"]
+
+def map_keywords_to_files(keywords):
+    """Map extracted keywords to question files"""
+    question_files = [f"{kw}.txt" for kw in keywords if os.path.exists(f"{kw}.txt")]
+    return question_files if question_files else ["question.txt"]
+
+def generate_correct_response(question, response):
+    """Evaluate the response correctness"""
+    template = '''
+    You are a question helper. You must check the response against the answer.
+    
+    If the answer is completely wrong, reply with a correct answer starting with 0.
+    If the answer is correct, start with 1 (no need to reply further).
+    If the answer is partially correct, start with 0.5 and provide a modified reply.
+
+    Question: {question}
+    Response: {response}
+
+    Max word limit: 100. There may be some word discrepancy as we are 
+    detecting voice. Consider that.
+    '''
+    
+    prompt = PromptTemplate.from_template(template)
+    chain = prompt | llm
+    
+    try:
+        response = chain.invoke(input={"question": question, "response": response})
+        return response.content
+    except Exception as e:
+        print(f"Error generating response: {e}")
+        return "Error processing response"
+
 def main():
+    """Main function to run the interview session"""
     name = input("Enter your name: ")
     participant_id = input("Enter your ID: ")
 
@@ -117,17 +159,17 @@ def main():
     if start != "y":
         print("Exiting...")
         return
-
+    
+    # Initialize question sources with default
     question_sources = ["question.txt"]
-
-    # Start **one** continuous video recording
+    
+    # Start one continuous video recording
     cap, out, video_file = start_video_recording()
 
     try:
-        for i in range(5):  # Loop through 5 questions
+        for i in range(5):
             print(f"\nQuestion {i + 1}:")
-            
-            # Select a question
+
             if i < 3:
                 question = PERSONALITY_QUESTIONS[i]
             elif i == 3:
@@ -149,8 +191,18 @@ def main():
 
             # Recognize speech while video recording continues
             answer = recognize_speech(duration=15, cap=cap, out=out)
-
             print(f"Answer {i + 1}: {answer}")
+
+            if i < 3:
+                print("Personality question - no evaluation performed.")
+            elif i == 3:
+                keywords = keyword(answer)
+                print(f"Extracted keywords: {keywords}")
+                question_sources = map_keywords_to_files(keywords)
+                print(f"Question sources for next question: {question_sources}")
+            else:
+                disaster_response = generate_correct_response(question, answer)
+                print("Evaluation:", disaster_response)
 
             time.sleep(2)  # Pause before next question
 
@@ -159,12 +211,9 @@ def main():
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
     finally:
-        # Stop video recording **once** at the end
+        # Stop video recording once at the end
         stop_video_recording(cap, out)
         print(f"Session completed. Video saved to {video_file}")
-
-
-
 
 if __name__ == "__main__":
     main()
