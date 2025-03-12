@@ -1,0 +1,20 @@
+What is the difference between an array and a linked list?
+Explain the concept of dynamic memory allocation in C.
+How does recursion work, and what are its advantages and disadvantages?
+What is the time complexity of quicksort in the worst case?
+How does a hash table handle collisions?
+What is the difference between a greedy algorithm and dynamic programming?
+Explain Dijkstra’s algorithm for shortest path finding.
+What is the difference between depth-first search (DFS) and breadth-first search (BFS)?
+How do you determine if a given graph is a tree?
+What is the significance of the Big-O notation in algorithm analysis?
+What are the different types of scheduling algorithms in an OS?
+Explain the difference between a process and a thread.
+What are deadlocks, and how can they be prevented?
+What is virtual memory, and how does it work?
+Explain the purpose of a page replacement algorithm.
+What is the difference between normalization and denormalization?
+Explain ACID properties in database transactions.
+What is indexing in databases, and how does it improve performance?
+What is the difference between TCP and UDP?
+How does public-key cryptography ensure secure communication?
