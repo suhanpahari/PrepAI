@@ -274,51 +274,29 @@
     </style>
 </head>
 <body>
-    <!-- Grid Background -->
     <div class="grid-bg"></div>
-
-    <!-- Video Call Container -->
     <div class="video-call-container">
-        <!-- PrepAI Logo -->
         <div class="logo">PrepAI</div>
-
-        <!-- Interviewer Video (AI Agent) -->
         <div class="interviewer-video">
-            <!-- Interviewer Content (Placeholder or Image) -->
             <div class="interviewer-content">
                 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-color);">
-                    AI Interviewer
+                    Loading Interview...
                 </div>
             </div>
-            <!-- Bot Icon -->
             <div class="webcam-icon">🤖</div>
-            <!-- Control Bar at the Bottom -->
             <div class="control-bar">
-                <button class="control-btn">
-                    🎙️ Mute Mic
-                    <!-- JavaScript would toggle mic on/off -->
-                </button>
-                <button class="control-btn">
-                    📷 Camera Off
-                    <!-- JavaScript would toggle camera on/off -->
-                </button>
-                <button class="control-btn disconnect" onclick="window.location.href='index.html'">
-                    📞 Disconnect
-                    <!-- Redirects to landing page; real implementation would disconnect WebRTC -->
-                </button>
+                <button class="control-btn">🎙️ Mute Mic</button>
+                <button class="control-btn">📷 Camera Off</button>
+                <button class="control-btn disconnect">📞 Disconnect</button>
             </div>
         </div>
-
-        <!-- Self Video Box -->
         <div class="self-video">
-            <div class="self-placeholder">Your Video (Placeholder)</div>
-            <!-- Replace with <video> tag for real self-video feed -->
+            <div class="self-placeholder">Your Video (Loading...)</div>
         </div>
     </div>
-
-    <!-- Footer -->
     <footer class="footer">
         <p>Ready to ace your interview? <a href="#">Learn More</a> | <a href="#">Contact Us</a> | © 2025 PrepAI</p>
     </footer>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

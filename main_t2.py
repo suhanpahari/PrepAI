@@ -121,8 +121,8 @@ def keyword(text):
 
 def map_keywords_to_files(keywords):
     """Map extracted keywords to question files"""
-    question_files = [f"{kw}.txt" for kw in keywords if os.path.exists(f"{kw}.txt")]
-    return question_files if question_files else ["question.txt"]
+    question_files = [f"question_set/{kw}.txt" for kw in keywords if os.path.exists(f"question_set/{kw}.txt")]
+    return question_files if question_files else ["question_set/question.txt"]
 
 def generate_correct_response(question, response):
     """Evaluate the response correctness"""

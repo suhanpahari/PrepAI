@@ -1,54 +1,225 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, request, jsonify
+import os
+import threading
 import cv2
-import numpy as np
+import random
+from datetime import datetime
+from text2speach import speak_input  # Replace with actual TTS if needed
+from llm_add import llm  # Replace with actual LLM if needed
+from langchain_core.prompts import PromptTemplate
+from Transcript import record_audio, transcribe_audio  # Replace with actual audio modules
 
 app = Flask(__name__)
 
-def generate_frames():
-    cap = cv2.VideoCapture(0)
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
-    eye_positions = []
-    warning_threshold = 50  # Adjust as needed
-    
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+PERSONALITY_QUESTIONS = [
+    "How would you describe your approach to solving problems?",
+    "Do you prefer working alone or in a team, and why?",
+    "What motivates you to do your best work?"
+]
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        
-        for (x, y, w, h) in faces:
-            roi_gray = gray[y:y+h, x:x+w]
-            eyes = eye_cascade.detectMultiScale(roi_gray)
+KEYWORD_LIST = ["science", "math", "history", "literature", "technology", "art", "music", "sports", "programming", "engineering"]
+
+cap = None
+out = None
+recording = False
+question_index = 0
+question_sources = ["question.txt"]
+
+def get_random_question(filename="question.txt"):
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            questions = [q.strip() for q in file.readlines() if q.strip()]
+        return random.choice(questions) if questions else "No questions available."
+    except FileNotFoundError:
+        print(f"Error: {filename} not found.")
+        return "Error: Question file not found."
+
+def get_random_question(filename="question.txt"):
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            questions = [q.strip() for q in file.readlines() if q.strip()]
+        return random.choice(questions) if questions else None
+    except FileNotFoundError:
+        print(f"Error: {filename} not found.")
+        return None
+
+# Start video recording function
+def start_video_recording():
+    os.makedirs("videos", exist_ok=True)
+    
+    filename = f"videos/video.avi"
+    
+    cap = cv2.VideoCapture(0)  # Default webcam
+    if not cap.isOpened():
+        print("Error: Could not open video device")
+        return None, None, None
+    
+    # Define video codec and create writer
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(filename, fourcc, 20.0, (width, height))
+    
+    if not out.isOpened():
+        print("Error: Could not create video writer")
+        cap.release()
+        return None, None, None
+    
+    print(f"Started video recording to {filename}")
+    return cap, out, filename
+
+# Audio recording in a separate thread
+def record_audio_thread(audio_file, duration):
+    record_audio(audio_file, duration=duration)
+
+# Speech recognition and synchronized recording
+def recognize_speech(duration=5, cap=None, out=None):
+    audio_file = "temp.wav"
+    print("Listening... Speak now.")
+    
+    try:
+        if cap is not None and out is not None:
+            # Start audio recording in a separate thread
+            audio_thread = threading.Thread(target=record_audio_thread, args=(audio_file, duration))
+            audio_thread.start()
             
-            for (ex, ey, ew, eh) in eyes:
-                eye_center = (x + ex + ew // 2, y + ey + eh // 2)
-                cv2.circle(frame, eye_center, 5, (255, 0, 0), -1)
-                eye_positions.append(eye_center)
+            start_time = time.time()
+            while time.time() - start_time < duration:
+                ret, frame = cap.read()
+                if not ret:
+                    print("Error: Failed to capture video frame")
+                    break
                 
-                if len(eye_positions) > 30:
-                    eye_positions.pop(0)
+                out.write(frame)
+                cv2.imshow('Recording', frame)
                 
-                # Check movement
-                if len(eye_positions) >= 2:
-                    movement = np.std(eye_positions, axis=0).sum()
-                    if movement > warning_threshold:
-                        cv2.putText(frame, "Warning: Excessive Movement!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                # Allow early exit with 'q'
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            
+            audio_thread.join()  # Ensure audio recording completes
+            
+            cv2.destroyAllWindows()
+        else:
+            record_audio(audio_file, duration=duration)
         
-        _, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        print("Processing speech...")
+        text = transcribe_audio(audio_file)
+        if not text:
+            print("No speech detected or transcription failed.")
+            return "No response"
+        return text
+    except Exception as e:
+        print(f"Error in transcription: {e}")
+        return "Error in recognition"
+    finally:
+        if os.path.exists(audio_file):
+            os.remove(audio_file)  # Clean up temp file
+
+# Stop video recording
+def stop_video_recording(cap, out):
+    if out is not None:
+        out.release()
+    if cap is not None:
+        cap.release()
+    cv2.destroyAllWindows()
+    print("Video recording stopped")
+
+def keyword(text):
+    """Extract keywords from response"""
+    text = text.lower()
+    matched_keywords = [kw for kw in KEYWORD_LIST if kw in text]
+    return matched_keywords if matched_keywords else ["general"]
+
+def map_keywords_to_files(keywords):
+    """Map extracted keywords to question files"""
+    question_files = [f"question_set/{kw}.txt" for kw in keywords if os.path.exists(f"question_set/{kw}.txt")]
+    return question_files if question_files else ["question_set/question.txt"]
+
+def generate_correct_response(question, response):
+    """Evaluate the response correctness"""
+    template = '''
+    You are a question helper. You must check the response against the answer.
+    
+    If the answer is completely wrong, reply with a correct answer starting with 0.
+    If the answer is correct, start with 1 (no need to reply further).
+    If the answer is partially correct, start with 0.5 and provide a modified reply.
+
+    Question: {question}
+    Response: {response}
+
+    Max word limit: 100. There may be some word discrepancy as we are 
+    detecting voice. Consider that.
+    '''
+    
+    prompt = PromptTemplate.from_template(template)
+    chain = prompt | llm
+    
+    try:
+        response = chain.invoke(input={"question": question, "response": response})
+        return response.content
+    except Exception as e:
+        print(f"Error generating response: {e}")
+        return "Error processing response"
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    print("Serving interview.html")
+    return render_template('interview.html')
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/start_interview', methods=['GET'])
+def start_interview():
+    global recording
+    success, message = start_video_recording()
+    if not success:
+        return jsonify({"error": message}), 500
+    print("Interview started")
+    return jsonify({"message": f"Interview started. Video recording: {message}"})
+
+@app.route('/next_question', methods=['GET'])
+def next_question():
+    global question_index, question_sources
+    
+    if question_index < 3:
+        question = PERSONALITY_QUESTIONS[question_index]
+    elif question_index == 3:
+        question = "What topic do you think is your strong zone?"
+    else:
+        question_file = random.choice(question_sources)
+        question = get_random_question(question_file)
+    
+    print(f"Speaking question {question_index + 1}: {question}")
+    speak_input(question)
+    question_index += 1
+    return jsonify({"question": question})
+
+@app.route('/submit_answer', methods=['POST'])
+def submit_answer():
+    global question_sources
+    data = request.json
+    question = data.get('question')
+    answer = recognize_speech(duration=15)
+    
+    if "strong zone" in question.lower():
+        keywords = keyword(answer)
+        question_sources = map_keywords_to_files(keywords)
+        speak_input(f"Detected topics: {', '.join(keywords)}. Moving to next question.")
+        return jsonify({"answer": answer, "keywords": keywords, "sources": question_sources})
+    elif any(q in question for q in PERSONALITY_QUESTIONS):
+        speak_input("Thank you for your response. Moving to the next question.")
+        return jsonify({"answer": answer, "message": "Personality question - no evaluation."})
+    else:
+        evaluation = generate_correct_response(question, answer)
+        speak_input(f"Evaluation: {evaluation}")
+        return jsonify({"answer": answer, "evaluation": evaluation})
+
+@app.route('/end_interview', methods=['GET'])
+def end_interview():
+    global question_index
+    stop_video_recording()
+    speak_input("Interview ended. Thank you for participating!")
+    question_index = 0
+    return jsonify({"message": "Interview ended. Video saved."})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
