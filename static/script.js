@@ -2,6 +2,8 @@
 let stream;
 let isMuted = false;
 let isCameraOff = false;
+let mediaRecorder;
+let audioChunks = [];
 
 async function startWebcam() {
     try {
@@ -9,13 +11,22 @@ async function startWebcam() {
         const video = document.createElement('video');
         video.srcObject = stream;
         video.autoplay = true;
-        video.muted = true; // Mute to avoid audio feedback
-        video.style.width = '100%'; // Fit to container width
-        video.style.height = '100%'; // Fit to container height
-        video.style.objectFit = 'cover'; // Ensure it fills the space without distortion
+        video.muted = true;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'cover';
         const selfVideo = document.getElementById('self-video');
-        selfVideo.innerHTML = ''; // Clear the placeholder text
+        selfVideo.innerHTML = '';
         selfVideo.appendChild(video);
+
+        // Set up MediaRecorder for audio
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = () => {
+            // Audio recording stopped, handled in submitAnswer
+        };
     } catch (err) {
         console.error("Error accessing webcam:", err);
         document.getElementById('self-video').innerHTML = 'Webcam not available';
@@ -55,16 +66,33 @@ async function nextQuestion() {
 }
 
 async function submitAnswer(question, index) {
-    const answer = "User response placeholder"; // Replace with actual audio transcription if integrated
-    const response = await fetch('/submit_answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer, question, index })
-    });
-    const data = await response.json();
-    if (data.next) {
-        setTimeout(nextQuestion, 2000); // Move to next question after 2 seconds
-    }
+    if (!mediaRecorder) return;
+
+    // Start recording audio
+    audioChunks = [];
+    mediaRecorder.start();
+    document.getElementById('subtitle').innerText = "Recording...";
+
+    // Stop recording after 5 seconds
+    setTimeout(async () => {
+        mediaRecorder.stop();
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+
+        // Send audio to backend (though we'll rely on backend recording for now)
+        const response = await fetch('/submit_answer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question, index })
+        });
+        const data = await response.json();
+
+        // Display transcript as subtitle
+        document.getElementById('subtitle').innerText = data.transcript;
+
+        if (data.next) {
+            setTimeout(nextQuestion, 2000);
+        }
+    }, 5000); // 5 seconds of recording
 }
 
 async function endInterview() {
@@ -80,12 +108,14 @@ function updateQuestion(data) {
     const content = document.getElementById('interviewer-content');
     if (data.done) {
         content.innerHTML = `<div>${data.question}</div>`;
+        document.getElementById('subtitle').innerText = '';
         endInterview();
     } else {
         content.innerHTML = `
             <div>Question ${data.index}: ${data.question}</div>
             <button onclick="submitAnswer('${data.question}', ${data.index})">Submit Answer</button>
         `;
+        document.getElementById('subtitle').innerText = ''; // Clear subtitle for new question
     }
 }
 

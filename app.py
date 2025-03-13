@@ -35,7 +35,7 @@ def get_random_question(filename="question.txt"):
 
 def start_video_recording():
     os.makedirs("videos", exist_ok=True)
-    filename = f"videos/video.avi"
+    filename = f"videos/video_{int(time.time())}.avi"
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open video device")
@@ -118,7 +118,7 @@ current_question_index = 0
 
 @app.route('/')
 def index():
-    return render_template('interview.html')  # Assuming your HTML is named 'interview.html'
+    return render_template('interview.html')
 
 @app.route('/start_interview', methods=['GET'])
 def start_interview():
@@ -148,23 +148,26 @@ def get_next_question():
 
 @app.route('/submit_answer', methods=['POST'])
 def submit_answer():
-    global question_sources
+    global question_sources, cap, out
     data = request.json
-    answer = data.get("answer", "No response")
     question = data.get("question", "")
     index = data.get("index", 0)
     
+    # Record and transcribe audio
+    transcript = recognize_speech(duration=5, cap=cap, out=out)
+    print(f"Transcript for question {index}: {transcript}")
+
+    # Process the answer internally
     if index <= 3:
         if index == 3:
-            keywords = keyword(answer)
+            keywords = keyword(transcript)
             question_sources = map_keywords_to_files(keywords)
-            print(f"Keywords detected: {keywords}")  # Log internally, don’t send to UI
-            return jsonify({"next": True})  # No feedback sent
-        return jsonify({"next": True})  # No feedback for personality questions
+            print(f"Keywords detected: {keywords}")
+        return jsonify({"transcript": transcript, "next": True})
     else:
-        feedback = generate_correct_response(question, answer)
-        print(f"Feedback for question {index}: {feedback}")  # Log internally
-        return jsonify({"next": True})  # No feedback sent to frontend
+        feedback = generate_correct_response(question, transcript)
+        print(f"Feedback for question {index}: {feedback}")
+        return jsonify({"transcript": transcript, "next": True})
 
 @app.route('/end_interview', methods=['GET'])
 def end_interview():
