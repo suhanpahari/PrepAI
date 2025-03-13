@@ -118,7 +118,23 @@ current_question_index = 0
 recording_in_progress = False
 
 @app.route('/')
-def index():
+def home():
+    return render_template('index.html')
+
+@app.route('/login.html')
+def login():
+    return render_template('login.html')
+
+@app.route('/pricing.html')
+def pricing():
+    return render_template('pricing.html')
+
+@app.route('/verification.html')
+def verification():
+    return render_template('verification.html')
+
+@app.route('/interview.html')
+def interview():
     return render_template('interview.html')
 
 @app.route('/start_interview', methods=['GET'])
