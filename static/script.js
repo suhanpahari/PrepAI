@@ -1,4 +1,4 @@
-// script.js
+// static/script.js
 let stream;
 let isMuted = false;
 let isCameraOff = false;
@@ -9,9 +9,12 @@ async function startWebcam() {
         const video = document.createElement('video');
         video.srcObject = stream;
         video.autoplay = true;
-        video.muted = true; // Mute self-video to avoid feedback
+        video.muted = true; // Mute to avoid audio feedback
+        video.style.width = '100%'; // Fit to container width
+        video.style.height = '100%'; // Fit to container height
+        video.style.objectFit = 'cover'; // Ensure it fills the space without distortion
         const selfVideo = document.getElementById('self-video');
-        selfVideo.innerHTML = '';
+        selfVideo.innerHTML = ''; // Clear the placeholder text
         selfVideo.appendChild(video);
     } catch (err) {
         console.error("Error accessing webcam:", err);
@@ -59,7 +62,9 @@ async function submitAnswer(question, index) {
         body: JSON.stringify({ answer, question, index })
     });
     const data = await response.json();
-    updateFeedback(data);
+    if (data.next) {
+        setTimeout(nextQuestion, 2000); // Move to next question after 2 seconds
+    }
 }
 
 async function endInterview() {
@@ -81,14 +86,6 @@ function updateQuestion(data) {
             <div>Question ${data.index}: ${data.question}</div>
             <button onclick="submitAnswer('${data.question}', ${data.index})">Submit Answer</button>
         `;
-    }
-}
-
-function updateFeedback(data) {
-    const content = document.getElementById('interviewer-content');
-    content.innerHTML += `<div>Feedback: ${data.feedback}</div>`;
-    if (data.next) {
-        setTimeout(nextQuestion, 2000); // Move to next question after 2 seconds
     }
 }
 

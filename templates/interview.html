@@ -6,13 +6,13 @@
     <title>PrepAI - Interview</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS Variables for Dark Theme */
+        /* Your existing CSS unchanged */
         :root {
             --background-color: #1a1a1a;
             --text-color: #e0e0e0;
-            --primary-color: #a1e8b7; /* Light green from landing page button */
-            --secondary-color: #2d2d2d; /* Dark gray for grid and borders */
-            --accent-color: #86c891; /* Darker green for 2D effects */
+            --primary-color: #a1e8b7;
+            --secondary-color: #2d2d2d;
+            --accent-color: #86c891;
             --panel-background: #2d2d2d;
             --note-background: #3d3d3d;
             --button-hover: #86c891;
@@ -33,7 +33,6 @@
             --webcam-icon-color: #000;
         }
 
-        /* General Styles */
         body {
             font-family: 'Roboto Mono', monospace;
             margin: 0;
@@ -47,12 +46,6 @@
             min-height: 100vh;
         }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        /* Grid Background (Graph Paper) */
         .grid-bg {
             position: absolute;
             inset: 0;
@@ -61,7 +54,6 @@
             z-index: 0;
         }
 
-        /* Video Call Container */
         .video-call-container {
             position: relative;
             z-index: 10;
@@ -71,7 +63,6 @@
             padding: 20px;
         }
 
-        /* Logo */
         .logo {
             position: absolute;
             top: 20px;
@@ -82,7 +73,6 @@
             z-index: 20;
         }
 
-        /* Interviewer Video (AI Agent) */
         .interviewer-video {
             background: var(--webcam-background);
             flex: 1;
@@ -94,7 +84,7 @@
             overflow: hidden;
             box-shadow: 3px 3px 0 var(--secondary-color);
             transition: transform 0.2s;
-            position: relative; /* For absolute positioning of bot icon */
+            position: relative;
             min-height: 0;
         }
 
@@ -105,20 +95,13 @@
 
         .interviewer-content {
             width: 100%;
-            height: 100%; /* Take up available space above control bar */
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative; /* Ensure bot icon is positioned relative to this */
+            position: relative;
         }
 
-        .interviewer-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Bot Icon */
         .webcam-icon {
             width: 80px;
             height: 80px;
@@ -131,11 +114,11 @@
             color: var(--webcam-icon-color);
             animation: pulse 2s infinite;
             box-shadow: 2px 2px 0 var(--accent-color);
-            position: absolute; /* Position relative to interviewer-video */
+            position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Center it perfectly */
-            z-index: 25; /* Above content but below control bar */
+            transform: translate(-50%, -50%);
+            z-index: 25;
         }
 
         @keyframes pulse {
@@ -144,7 +127,6 @@
             100% { transform: translate(-50%, -50%) scale(1); }
         }
 
-        /* Self Video Box */
         .self-video {
             background: var(--webcam-background);
             width: 200px;
@@ -172,7 +154,6 @@
             opacity: 0.7;
         }
 
-        /* Control Bar - At the bottom of interviewer-video */
         .control-bar {
             background: var(--panel-background);
             border-radius: 25px;
@@ -209,7 +190,7 @@
         }
 
         .control-btn.disconnect {
-            background: #ff4d4f; /* Red for disconnect */
+            background: #ff4d4f;
             color: white;
         }
 
@@ -219,7 +200,6 @@
             box-shadow: 4px 4px 0 #b32d2e;
         }
 
-        /* Footer */
         .footer {
             background: var(--panel-background);
             padding: 20px 40px;
@@ -246,7 +226,6 @@
             color: var(--button-hover);
         }
 
-        /* Responsive Adjustments */
         @media (max-width: 768px) {
             .control-bar {
                 width: 90%;
@@ -278,25 +257,23 @@
     <div class="video-call-container">
         <div class="logo">PrepAI</div>
         <div class="interviewer-video">
-            <div class="interviewer-content">
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-color);">
-                    Loading Interview...
-                </div>
+            <div class="interviewer-content" id="interviewer-content">
+                <!-- Questions will be injected here -->
             </div>
             <div class="webcam-icon">🤖</div>
             <div class="control-bar">
-                <button class="control-btn">🎙️ Mute Mic</button>
-                <button class="control-btn">📷 Camera Off</button>
-                <button class="control-btn disconnect">📞 Disconnect</button>
+                <button class="control-btn" id="mute-btn">🎙️ Mute Mic</button>
+                <button class="control-btn" id="camera-btn">📷 Camera Off</button>
+                <button class="control-btn disconnect" id="disconnect-btn">📞 Disconnect</button>
             </div>
         </div>
-        <div class="self-video">
+        <div class="self-video" id="self-video">
             <div class="self-placeholder">Your Video (Loading...)</div>
         </div>
     </div>
     <footer class="footer">
         <p>Ready to ace your interview? <a href="#">Learn More</a> | <a href="#">Contact Us</a> | © 2025 PrepAI</p>
     </footer>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
