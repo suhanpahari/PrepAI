@@ -185,12 +185,28 @@
                 <input type="password" id="room-password" class="form-input" placeholder="Enter room password" required>
             </div>
 
-            <button type="button" class="submit-btn" onclick="window.location.href='interview.html'">Start Interview</button>
+            <button type="button" class="submit-btn" onclick="verifyCandidate()">Start Interview</button>
         </form>
 
         <div class="footer">
             <p>Need help? <a href="#">Contact Support</a></p>
         </div>
     </div>
+    <script>
+        // Predefined correct credentials (Replace these with actual verification logic)
+        const correctRoomID = "12345";
+        const correctRoomPassword = "securepass";
+    
+        function verifyCandidate() {
+            let enteredRoomID = document.getElementById("room-id").value;
+            let enteredRoomPassword = document.getElementById("room-password").value;
+    
+            if (enteredRoomID === correctRoomID && enteredRoomPassword === correctRoomPassword) {
+                window.location.href = "interview.html"; // Redirect if valid
+            } else {
+                alert("Invalid Room ID or Password. Please try again.");
+            }
+        }
+    </script>    
 </body>
 </html>
