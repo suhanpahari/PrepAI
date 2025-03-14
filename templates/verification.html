@@ -193,7 +193,6 @@
         </div>
     </div>
     <script>
-        // Predefined correct credentials (Replace these with actual verification logic)
         const correctRoomID = "12345";
         const correctRoomPassword = "securepass";
     
@@ -202,7 +201,7 @@
             let enteredRoomPassword = document.getElementById("room-password").value;
     
             if (enteredRoomID === correctRoomID && enteredRoomPassword === correctRoomPassword) {
-                window.location.href = "interview.html"; // Redirect if valid
+                window.location.href = "interview.html";
             } else {
                 alert("Invalid Room ID or Password. Please try again.");
             }
