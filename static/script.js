@@ -194,5 +194,8 @@ window.onload = () => {
     startInterview();
 };
 
-document.getElementById("disconnect-btn").addEventListener("click", function() {
-    window.location.href = "index.html";})
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("disconnect-btn").addEventListener("click", function() {
+        window.location.href = "index.html";
+    });
+});
