@@ -4,6 +4,8 @@ let isMuted = false;
 let isCameraOff = false;
 let mediaRecorder;
 let audioChunks = [];
+let videoRecorder;
+let videoChunks = [];
 let isRecording = false;
 let recordingStartTime;
 
@@ -26,6 +28,17 @@ async function startWebcam() {
         mediaRecorder.ondataavailable = event => {
             audioChunks.push(event.data);
         };
+        
+        // Set up MediaRecorder for video
+        videoRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        videoRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+                videoChunks.push(event.data);
+            }
+        };
+        
+        // Start recording video for the entire interview
+        videoRecorder.start(1000); // Capture in 1-second chunks
     } catch (err) {
         console.error("Error accessing webcam:", err);
         document.getElementById('self-video').innerHTML = 'Webcam not available';
@@ -53,6 +66,11 @@ function toggleCamera() {
 }
 
 async function startInterview() {
+    videoChunks = []; // Reset video chunks
+    if (videoRecorder && videoRecorder.state !== 'recording') {
+        videoRecorder.start(1000);  // Start recording video in 1-second chunks
+    }
+    
     const response = await fetch('/start_interview');
     const data = await response.json();
     updateQuestion(data);
@@ -156,10 +174,51 @@ async function submitAnswer(question, index) {
 }
 
 async function endInterview() {
+    if (videoRecorder && videoRecorder.state === 'recording') {
+        // Stop video recording
+        videoRecorder.stop();
+        
+        videoRecorder.onstop = async () => {
+            // Create a video file from the recorded chunks
+            const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
+            
+            // Create a download link for the video
+            const videoUrl = URL.createObjectURL(videoBlob);
+            const downloadLink = document.createElement('a');
+            downloadLink.href = videoUrl;
+            downloadLink.download = 'interview_recording.webm';
+            downloadLink.innerHTML = 'Download Video Recording';
+            downloadLink.className = 'download-btn';
+            
+            // Add the link to the page
+            document.getElementById('interviewer-content').appendChild(downloadLink);
+            
+            // Also try to save the video through the server
+            try {
+                const formData = new FormData();
+                formData.append('video', videoBlob, 'video.webm');
+                
+                const saveResponse = await fetch('/save_video', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const saveData = await saveResponse.json();
+                if(saveData.success) {
+                    document.getElementById('subtitle').innerText = `Video saved as ${saveData.filename}`;
+                } else {
+                    console.error("Server couldn't save the video:", saveData.error);
+                }
+            } catch (error) {
+                console.error("Error saving video to server:", error);
+            }
+        };
+    }
+    
     const response = await fetch('/end_interview');
     const data = await response.json();
-    document.getElementById('interviewer-content').innerHTML = `<div>${data.message}. Video saved to ${data.video_file}</div>`;
-    document.getElementById('subtitle').innerText = '';
+    document.getElementById('interviewer-content').innerHTML = `<div>${data.message}</div>`;
+    
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
     }
