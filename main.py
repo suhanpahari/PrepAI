@@ -1,142 +1,104 @@
 import random
-import subprocess
-import platform
+import os
+import json
+
 from text2speach import speak_input
-from llm_add import llm
-from langchain_core.prompts import PromptTemplate
-# Import functions from transcript.py
-from Transcript import record_audio, transcribe_audio
+from Transcript import transcribe_audio
+#from llm_add import llm
 
-def get_random_question(filename="question.txt"):
+# CONFIG
+MAX_INTERVIEW_QUESTIONS = 5
+QUESTION_SETS_DIR = "question_set"
+KEYWORD_LIST = ["science", "math", "history", "literature", "technology", 
+                "art", "music", "sports", "programming", "engineering"]
+
+PERSONALITY_QUESTIONS = [
+    "How would you describe your approach to solving problems?",
+    "Do you prefer working alone or in a team, and why?",
+    "What motivates you to do your best work?"
+]
+
+# ------------------------
+def get_random_question(filename):
     try:
-        with open(filename, "r", encoding="utf-8") as file:
-            questions = [q.strip() for q in file.readlines() if q.strip()]
-        return random.choice(questions) if questions else None
+        with open(filename, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+        return random.choice(lines) if lines else None
     except FileNotFoundError:
-        print(f"Error: {filename} not found.")
+        print(f"[!] File not found: {filename}")
         return None
 
-def recognize_speech():
-    audio_file = "temp.wav"
-    print("Listening... Speak now.")
-    try:
-        # Record audio for 15 seconds (adjustable as needed)
-        record_audio(audio_file, duration=15)
-        print("Processing speech...")
-        text = transcribe_audio(audio_file)
-        if not text:
-            print("No speech detected or transcription failed.")
-            return "No response"
-        return text
-    except Exception as e:
-        print(f"Error in transcription: {e}")
-        return "Error in recognition"
+def extract_keywords(text):
+    text = text.lower()
+    return [kw for kw in KEYWORD_LIST if kw in text] or ["general"]
 
-def start_eye_tracking():
-    try:
-        if platform.system() == "Windows":
-            return subprocess.Popen(["start", "cmd", "/c", "python", "eye.py"], shell=True)
-        elif platform.system() == "Darwin":
-            return subprocess.Popen(["open", "-a", "Terminal", "python", "eye.py"])
-        elif platform.system() == "Linux":
-            return subprocess.Popen(["gnome-terminal", "--", "python", "eye.py"])
-        else:
-            raise OSError("Unsupported operating system")
-    except Exception as e:
-        print(f"Error starting eye tracking: {e}")
-        return None
+def map_keywords_to_files(keywords):
+    files = [f"{QUESTION_SETS_DIR}/{kw}.txt" for kw in keywords 
+             if os.path.exists(f"{QUESTION_SETS_DIR}/{kw}.txt")]
+    return files or [f"{QUESTION_SETS_DIR}/question.txt"]
 
-def start_face_tracking():
-    try:
-        if platform.system() == "Windows":
-            return subprocess.Popen(["start", "cmd", "/c", "python", "face.py"], shell=True)
-        elif platform.system() == "Darwin":
-            return subprocess.Popen(["open", "-a", "Terminal", "python", "face.py"])
-        elif platform.system() == "Linux":
-            return subprocess.Popen(["gnome-terminal", "--", "python", "face.py"])
-        else:
-            raise OSError("Unsupported operating system")
-    except Exception as e:
-        print(f"Error starting face tracking: {e}")
-        return None
+def split_transcript(transcript, n):
+    words = transcript.split()
+    seg_len = len(words) // n
+    return [
+        " ".join(words[i * seg_len: None if i == n - 1 else (i + 1) * seg_len])
+        for i in range(n)
+    ]
 
-def generate_currect_response(question, response):
-    template = '''
-    You are a question helper. You must check the response against the answer.
+def generate_fake_transcript(questions):
+    print("\nPlease type your answer for each question below.\n")
+    responses = []
+    for q in questions:
+        print(f"Q: {q}")
+        ans = input("A: ")
+        responses.append(ans)
+    return " ".join(responses)
+
+def generate_interview_analysis(transcript):
+    # Replace this with real LLM chain if available
+    return "[FAKE ANALYSIS]\nGood responses overall. Try to elaborate more on specific achievements.\n"
+
+# ------------------------
+def run_cli_interview():
+    questions = []
     
-    If the answer is completely wrong, reply with a correct answer starting with 0.
-    If the answer is correct, start with 1 (no need to reply further).
-    If the answer is partially correct, start with 0.5 and provide a modified reply.
+    print("🚀 Starting Interview...\n")
 
-    Question: {question}
-    Response: {response}
+    # Ask 3 personality questions
+    for i in range(3):
+        q = PERSONALITY_QUESTIONS[i]
+        questions.append(q)
 
-    Max word limit: 100. there may be some word discrepancy as we are 
-    detecting voice. consider that.
-    '''
-    
-    prompt = PromptTemplate.from_template(template)
-    chain = prompt | llm
-    
-    try:
-        response = chain.invoke(input={"question": question, "response": response})
-        return response.content
-    except Exception as e:
-        print(f"Error generating disaster response: {e}")
-        return "Error processing response"
+    # Ask about strong zone
+    strong_zone_q = "What topic do you think is your strong zone?"
+    print(f"Q4: {strong_zone_q}")
+    zone = input("A4: ")
+    questions.append(strong_zone_q)
 
-def main():
-    name = input("Enter your name: ")
-    participant_id = input("Enter your ID: ")
+    # Map keywords from answer to files
+    keywords = extract_keywords(zone)
+    files = map_keywords_to_files(keywords)
 
-    start = input("Start? (y/n): ").strip().lower()
-    if start != "y":
-        print("Exiting...")
-        return
+    # Final question from keyword set
+    q_file = random.choice(files)
+    q = get_random_question(q_file) or "Tell us something interesting about your field."
+    questions.append(q)
 
-    print("Starting eye and face tracking in new windows...")
-    eye_tracking_process = start_eye_tracking()
-    face_tracking_process = start_face_tracking()
+    # Simulate full transcript
+    transcript_text = generate_fake_transcript(questions)
+    segments = split_transcript(transcript_text, len(questions))
 
-    try:
-        for i in range(5):
-            print(f"\nQuestion {i + 1}:")
-            
-            question = get_random_question()
-            if not question:
-                print("No questions available. Exiting.")
-                break
+    formatted_transcript = ""
+    for i, (q, a) in enumerate(zip(questions, segments)):
+        formatted_transcript += f"Question {i+1}: {q}\nAnswer: {a}\n\n"
 
-            print(question)
-            speak_input(question)
+    print("\n📝 Formatted Transcript:\n")
+    print(formatted_transcript)
 
-            ready = input("Ready to answer? (y/n): ").strip().lower()
-            if ready != "y":
-                print("Skipping question...")
-                continue
+    analysis = generate_interview_analysis(transcript_text)
+    print("\n📊 Interview Analysis:\n")
+    print(analysis)
 
-            answer = recognize_speech()
-            print(f"Answer {i + 1}: {answer}")
-
-            disaster_response = generate_currect_response(question, answer)
-            print("Evaluation:", disaster_response)
-
-    except KeyboardInterrupt:
-        print("\nSession interrupted by user.")
-
-    finally:
-        print("\nStopping tracking processes...")
-        if eye_tracking_process:
-            eye_tracking_process.terminate()
-        if face_tracking_process:
-            face_tracking_process.terminate()
-        
-        if eye_tracking_process:
-            eye_tracking_process.wait()
-        if face_tracking_process:
-            face_tracking_process.wait()
-        
-        print("Session completed.")
-
+# ------------------------
 if __name__ == "__main__":
-    main()
+    run_cli_interview()
