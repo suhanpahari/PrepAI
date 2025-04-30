@@ -35,9 +35,9 @@ if not is_valid_email(PREDEFINED_RECEIVER_EMAIL):
 
 # Personality questions
 PERSONALITY_QUESTIONS = [
-    "Hello welcome to PrepAI introduce yourself",
-    "Explain merge short",
-    "explain dynamic programming"
+    "Hello welcome to PrepAI Introduce yourself",
+    # "Explain merge short",
+    # "explain dynamic programming"
     
 ]
 
@@ -115,11 +115,11 @@ def generate_correct_response(question, response):
 def generate_ocean_score():
     """Generate a random OCEAN score."""
     return {
-        "Openness": random.randint(20, 100),
-        "Conscientiousness": random.randint(20, 100),
-        "Extraversion": random.randint(20, 100),
-        "Agreeableness": random.randint(20, 100),
-        "Neuroticism": random.randint(20, 100)
+        "Openness": random.randint(30, 65),
+        "Conscientiousness": random.randint(30, 65),
+        "Extraversion": random.randint(30, 65),
+        "Agreeableness": random.randint(30, 65),
+        "Neuroticism": random.randint(30, 65)
     }
 
 def send_email(recipient_email, responses, ocean_score):
@@ -226,9 +226,9 @@ def get_next_question():
         })
     
     # Select appropriate question based on current stage
-    if current_question_index < 3:
+    if current_question_index < 1:
         question = PERSONALITY_QUESTIONS[current_question_index]
-    elif current_question_index == 3:
+    elif current_question_index == 1:
         question = "What topic do you think is your strong zone?"
     else:
         question_file = random.choice(question_sources)
@@ -255,9 +255,9 @@ def submit_answer():
     
     # Process the answer internally
     feedback = "No feedback for personality questions."
-    if index <= 3:
+    if index <= 1:
         # For personality questions and strong zone question
-        if index == 3:
+        if index == 1:
             # Extract keywords from the response to determine question topic
             keywords = extract_keywords(transcript)
             question_sources = map_keywords_to_files(keywords)
