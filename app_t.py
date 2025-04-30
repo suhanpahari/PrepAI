@@ -35,9 +35,10 @@ if not is_valid_email(PREDEFINED_RECEIVER_EMAIL):
 
 # Personality questions
 PERSONALITY_QUESTIONS = [
-    "How would you describe your approach to solving problems?",
-    "Do you prefer working alone or in a team, and why?",
-    "What motivates you to do your best work?"
+    "Hello welcome to PrepAI introduce yourself",
+    "Explain merge short",
+    "explain dynamic programming"
+    
 ]
 
 # Keywords for matching
