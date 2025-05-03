@@ -1,276 +1,223 @@
-import pyaudio
-import webrtcvad
-import numpy as np
-import wave
-import tempfile
-import os
 import asyncio
-import logging
-import struct
-from groq import Groq
-from elevenlabs.client import AsyncElevenLabs
-from pygame import mixer
-import argparse
+import base64
+import cv2
+import os
+import pyaudio
+import requests
+import json
+from threading import Lock, Thread
+from cv2 import VideoCapture, imencode
+from dotenv import load_dotenv
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+load_dotenv()
 
-# Get API keys from environment variables with fallback to hardcoded values
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
-ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "sk_a02661bc72a15d32268f049f94708c0b76433c20b0f2e403")
+# Groq API configuration
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_STT_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
+GROQ_TTS_URL = "https://api.groq.com/openai/v1/audio/speech"
+LLAMA4_MODEL = "llama-4-scout-17b-16e-instruct"
 
-# Initialize clients
-groq_client = Groq(api_key=GROQ_API_KEY)
-elevenlabs_client = AsyncElevenLabs(api_key=ELEVENLABS_API_KEY)
+# Audio configuration
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 16000
+RECORD_SECONDS = 5  # Duration for audio capture
 
-class VoiceDetector:
-    def __init__(self, sample_rate=16000, frame_duration_ms=30, min_speech_frames=10, max_silence_frames=50):
-        self.vad = webrtcvad.Vad(3)  # Aggressive VAD mode
-        self.sample_rate = sample_rate
-        self.frame_duration_ms = frame_duration_ms
-        self.frame_size = int(sample_rate * frame_duration_ms / 1000)
-        self.min_speech_frames = min_speech_frames
-        self.max_silence_frames = max_silence_frames
-        self.speech_frames = 0
-        self.silence_frames = 0
-        self.is_speaking = False
+# System prompt
+SYSTEM_PROMPT = """
+You are a witty assistant that uses chat history and user-provided images to answer questions.
+Use few words in your answers. Go straight to the point. Do not use emoticons or emojis.
+Be friendly and helpful. Show some personality.
+"""
 
-    def detect_voice(self, audio_data):
+class WebcamStream:
+    def __init__(self):
+        self.stream = VideoCapture(index=0)
+        _, self.frame = self.stream.read()
+        self.running = False
+        self.lock = Lock()
+
+    def start(self):
+        if self.running:
+            return self
+        self.running = True
+        self.thread = Thread(target=self.update, args=())
+        self.thread.start()
+        return self
+
+    def update(self):
+        while self.running:
+            _, frame = self.stream.read()
+            self.lock.acquire()
+            self.frame = frame
+            self.lock.release()
+
+    def read(self, encode=False):
+        self.lock.acquire()
+        frame = self.frame.copy()
+        self.lock.release()
+        if encode:
+            _, buffer = imencode(".jpeg", frame)
+            return base64.b64encode(buffer)
+        return frame
+
+    def stop(self):
+        self.running = False
+        if self.thread.is_alive():
+            self.thread.join()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.stream.release()
+
+class Assistant:
+    def __init__(self):
+        self.chat_history = []
+
+    async def answer(self, prompt, image):
+        if not prompt:
+            return
+        print("Prompt:", prompt)
+
+        # Prepare messages for Groq API
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            *self.chat_history,
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": f"data:image/jpeg;base64,{image.decode()}"
+                    }
+                ]
+            }
+        ]
+
+        # Call Groq API for Llama 4
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": LLAMA4_MODEL,
+            "messages": messages,
+            "max_tokens": 150,
+            "temperature": 0.7
+        }
+
         try:
-            if not audio_data or len(audio_data) == 0:
-                logger.warning("Empty audio data")
-                return False
-
-            audio_array = np.frombuffer(audio_data, dtype=np.int16)
-            if len(audio_array) == 0:
-                logger.warning("No valid audio data after conversion")
-                return False
-
-            frames = [audio_array[i:i + self.frame_size] for i in range(0, len(audio_array), self.frame_size)]
-            if not frames:
-                logger.warning("No frames generated")
-                return False
-
-            current_speech_frames = 0
-            for frame in frames:
-                if len(frame) != self.frame_size:
-                    continue
-                frame_bytes = struct.pack("%dh" % len(frame), *frame)
-                if self.vad.is_speech(frame_bytes, self.sample_rate):
-                    current_speech_frames += 1
-                    self.speech_frames += 1
-                    self.silence_frames = 0
-                else:
-                    self.silence_frames += 1
-
-            if current_speech_frames > 0:
-                if not self.is_speaking and self.speech_frames >= self.min_speech_frames:
-                    self.is_speaking = True
-                return True
-            elif self.silence_frames > self.max_silence_frames:
-                if self.is_speaking:
-                    self.is_speaking = False
-                    self.speech_frames = 0
-                return False
-
-            return self.is_speaking
-        except Exception as e:
-            logger.error(f"Voice detection error: {str(e)}")
-            return False
-
-async def transcribe_audio(audio_data: bytes):
-    try:
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
-            temp_wav_name = temp_wav.name  # Save name before closing
-            with wave.open(temp_wav_name, 'wb') as wav_file:
-                wav_file.setnchannels(1)
-                wav_file.setsampwidth(2)
-                wav_file.setframerate(16000)
-                wav_file.writeframes(audio_data)
-
-        # File is now fully written and closed
-        with open(temp_wav_name, 'rb') as audio_file:
-            response = groq_client.audio.transcriptions.create(
-                model="whisper-large-v3-turbo",
-                file=audio_file,
-                response_format="text"
+            response = await asyncio.get_event_loop().run_in_executor(
+                None, lambda: requests.post(GROQ_API_URL, headers=headers, json=payload)
             )
+            response.raise_for_status()
+            response_text = response.json()["choices"][0]["message"]["content"].strip()
+            print("Response:", response_text)
 
-        os.unlink(temp_wav_name)
-        return response
-    except Exception as e:
-        logger.error(f"Transcription error: {str(e)}")
-        return None
+            # Update chat history
+            self.chat_history.append({"role": "user", "content": prompt})
+            self.chat_history.append({"role": "assistant", "content": response_text})
+            if len(self.chat_history) > 10:  # Limit history
+                self.chat_history = self.chat_history[-10:]
 
-async def generate_response(text: str):
-    try:
-        response = groq_client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[
-                {"role": "system", "content": "You are a helpful voice assistant. Provide concise responses (max 2 sentences)."},
-                {"role": "user", "content": text}
-            ],
-            temperature=0.7,
-            max_tokens=100
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Chat response error: {str(e)}")
-        return "I'm sorry, I couldn't process your request."  # Fallback response that will be spoken
+            # Generate TTS
+            if response_text:
+                await self._tts(response_text)
 
-async def generate_speech(text: str):
-    try:
-        # Using async generator to fetch chunks of audio
-        audio_data = b""
-        async_response = elevenlabs_client.text_to_speech.convert(
-            voice_id="pNInz6obpgDQGcFmaJgB",  # Alloy voice
-            text=text,
-            model_id="eleven_monolingual_v1"
-        )
-        
-        # Properly iterate through the async generator
-        async for chunk in async_response:
-            audio_data += chunk  # Collect the audio data in chunks
+        except requests.RequestException as e:
+            print(f"Error calling Groq API: {e}")
 
-        return audio_data
-    except Exception as e:
-        logger.error(f"Speech generation error: {str(e)}")
-        # Generate a local fallback response if ElevenLabs fails
-        return await generate_fallback_audio("I'm sorry, I'm having trouble generating speech right now.")
-    
-async def generate_fallback_audio(text: str):
-    # Simple fallback if ElevenLabs fails - requires pyttsx3 library
-    # This is a placeholder - you may need to implement a different fallback method
-    try:
-        import pyttsx3
-        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_file:
-            engine = pyttsx3.init()
-            engine.save_to_file(text, temp_file.name)
-            engine.runAndWait()
-            with open(temp_file.name, 'rb') as f:
-                return f.read()
-    except ImportError:
-        logger.error("pyttsx3 not installed for fallback audio")
-        return None
-    except Exception as e:
-        logger.error(f"Fallback audio generation error: {str(e)}")
-        return None
+    async def _tts(self, response):
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "playai-tts",
+            "input": response,
+            "voice": "alloy",
+            "response_format": "pcm"
+        }
 
-async def play_audio(audio_data: bytes):
-    if not audio_data:
-        logger.error("No audio data to play")
-        return
-        
-    try:
-        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_mp3:
-            temp_mp3.write(audio_data)
-            temp_mp3.flush()
-            temp_mp3_name = temp_mp3.name
-            
-        # Initialize outside the with block to ensure the file is closed
-        mixer.init()
-        mixer.music.load(temp_mp3_name)
-        mixer.music.play()
-        
-        print("\nSpeaking...", end="")
-        
-        while mixer.music.get_busy():
-            await asyncio.sleep(0.1)
-            
-        mixer.quit()
-        os.unlink(temp_mp3_name)
-        print(" Done.")
-    except Exception as e:
-        logger.error(f"Audio playback error: {str(e)}")
+        try:
+            response = await asyncio.get_event_loop().run_in_executor(
+                None, lambda
 
-async def speak_startup_message():
-    """Generate and play a startup message to confirm the system is working."""
-    startup_message = "Voice assistant is now active. I'm listening for your commands."
-    print("Generating startup voice message...")
-    audio_data = await generate_speech(startup_message)
-    if audio_data:
-        await play_audio(audio_data)
-    else:
-        print("Failed to generate startup voice message")
+: requests.post(GROQ_TTS_URL, headers=headers, json=payload)
+            )
+            response.raise_for_status()
+            audio_data = response.content
 
-async def main():
-    pa = pyaudio.PyAudio()
-    stream = pa.open(
-        format=pyaudio.paInt16,
-        channels=1,
-        rate=16000,
-        input=True,
-        frames_per_buffer=1024
-    )
-    voice_detector = VoiceDetector()
-    audio_buffer = bytearray()
-    is_responding = False
-
-    print("Voice Assistant started. Speak to interact, silence to get a response. Interrupt by speaking.")
-    print("Press Ctrl+C to exit.")
-    
-    # Play startup message
-    await speak_startup_message()
-
-    try:
-        while True:
-            data = stream.read(1024, exception_on_overflow=False)
-            voice_detected = voice_detector.detect_voice(data)
-
-            print(f"\r{'Listening...' if voice_detected else 'Waiting for speech...'}", end="")
-
-            if voice_detected:
-                audio_buffer.extend(data)
-                if is_responding:
-                    is_responding = False
-                    mixer.music.stop()
-                    print("\nResponse interrupted.")
-            else:
-                if len(audio_buffer) > 0 and voice_detector.silence_frames >= voice_detector.max_silence_frames and not is_responding:
-                    print("\nProcessing audio...")
-                    transcription = await transcribe_audio(bytes(audio_buffer))
-                    audio_buffer.clear()
-                    
-                    if transcription:
-                        print(f"Transcription: {transcription}")
-                        response_text = await generate_response(transcription)
-                        
-                        if response_text:
-                            print(f"Response: {response_text}")
-                            is_responding = True
-                            
-                            # Always generate and play speech response
-                            speech_audio = await generate_speech(response_text)
-                            if speech_audio:
-                                await play_audio(speech_audio)
-                            else:
-                                print("Error: Failed to generate speech")
-                                
-                            is_responding = False
-                    else:
-                        # Provide audio feedback for failed transcription
-                        error_message = "I couldn't understand what you said. Please try again."
-                        print(error_message)
-                        is_responding = True
-                        error_audio = await generate_speech(error_message)
-                        if error_audio:
-                            await play_audio(error_audio)
-                        is_responding = False
-    except KeyboardInterrupt:
-        print("\nExiting...")
-        # Optional: add goodbye message
-        goodbye_audio = await generate_speech("Voice assistant shutting down. Goodbye!")
-        if goodbye_audio:
-            await play_audio(goodbye_audio)
-    finally:
-        if stream:
+            # Play audio
+            player = pyaudio.PyAudio()
+            stream = player.open(format=FORMAT, channels=CHANNELS, rate=24000, output=True)
+            stream.write(audio_data)
             stream.stop_stream()
             stream.close()
-        if pa:
-            pa.terminate()
+            player.terminate()
+
+        except requests.RequestException as e:
+            print(f"Error generating TTS: {e}")
+
+async def capture_audio():
+    p = pyaudio.PyAudio()
+    stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+    
+    print("Listening...")
+    frames = []
+    for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK, exception_on_overflow=False)
+        frames.append(data)
+    
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+    
+    return b''.join(frames)
+
+async def transcribe_audio(audio_data):
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "multipart/form-data"
+    }
+    files = {
+        "file": ("audio.wav", audio_data, "audio/wav"),
+        "model": (None, "distil-whisper-large-v3"),
+        "response_format": (None, "json")
+    }
+
+    try:
+        response = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: requests.post(GROQ_STT_URL, headers={"Authorization": f"Bearer {GROQ_API_KEY}"}, files=files)
+        )
+        response.raise_for_status()
+        return response.json().get("text", "")
+    except requests.RequestException as e:
+        print(f"Error transcribing audio: {e}")
+        return ""
+
+async def main():
+    webcam_stream = WebcamStream().start()
+    assistant = Assistant()
+
+    while True:
+        # Capture and transcribe audio
+        audio_data = await capture_audio()
+        prompt = await transcribe_audio(audio_data)
+        
+        if prompt:
+            image = webcam_stream.read(encode=True)
+            await assistant.answer(prompt, image)
+        
+        # Display webcam feed
+        cv2.imshow("webcam", webcam_stream.read())
+        if cv2.waitKey(1) in [27, ord("q")]:
+            break
+
+    webcam_stream.stop()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CLI Voice Assistant using Groq and ElevenLabs")
-    args = parser.parse_args()
     asyncio.run(main())
