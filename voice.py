@@ -4,10 +4,14 @@ import cv2
 import os
 import pyaudio
 import requests
-import json
+import wave
+import io
+import time
 from threading import Lock, Thread
 from cv2 import VideoCapture, imencode
 from dotenv import load_dotenv
+
+# Whisper will be imported when needed to avoid loading the model at startup
 
 load_dotenv()
 
@@ -34,8 +38,10 @@ Be friendly and helpful. Show some personality.
 
 class WebcamStream:
     def __init__(self):
-        self.stream = VideoCapture(index=0)
-        _, self.frame = self.stream.read()
+        self.stream = VideoCapture(0)
+        success, self.frame = self.stream.read()
+        if not success:
+            raise RuntimeError("Could not initialize webcam")
         self.running = False
         self.lock = Lock()
 
@@ -44,15 +50,17 @@ class WebcamStream:
             return self
         self.running = True
         self.thread = Thread(target=self.update, args=())
+        self.thread.daemon = True  # Make thread daemon so it exits when main program exits
         self.thread.start()
         return self
 
     def update(self):
         while self.running:
-            _, frame = self.stream.read()
-            self.lock.acquire()
-            self.frame = frame
-            self.lock.release()
+            success, frame = self.stream.read()
+            if success:
+                self.lock.acquire()
+                self.frame = frame
+                self.lock.release()
 
     def read(self, encode=False):
         self.lock.acquire()
@@ -65,11 +73,12 @@ class WebcamStream:
 
     def stop(self):
         self.running = False
-        if self.thread.is_alive():
-            self.thread.join()
+        if hasattr(self, 'thread') and self.thread.is_alive():
+            self.thread.join(timeout=1.0)
+        self.stream.release()
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.stream.release()
+        self.stop()
 
 class Assistant:
     def __init__(self):
@@ -125,9 +134,12 @@ class Assistant:
             # Generate TTS
             if response_text:
                 await self._tts(response_text)
+            
+            return response_text
 
         except requests.RequestException as e:
             print(f"Error calling Groq API: {e}")
+            return f"Error: {str(e)}"
 
     async def _tts(self, response):
         headers = {
@@ -138,20 +150,22 @@ class Assistant:
             "model": "playai-tts",
             "input": response,
             "voice": "alloy",
-            "response_format": "pcm"
+            "response_format": "mp3"  # Changed from pcm to mp3 for better compatibility
         }
 
         try:
             response = await asyncio.get_event_loop().run_in_executor(
-                None, lambda
-
-: requests.post(GROQ_TTS_URL, headers=headers, json=payload)
+                None, lambda: requests.post(GROQ_TTS_URL, headers=headers, json=payload)
             )
             response.raise_for_status()
             audio_data = response.content
 
-            # Play audio
+            # Play audio using system audio players
+            # This requires proper handling of mp3 data
             player = pyaudio.PyAudio()
+            
+            # For mp3 files, you might need an external library like pydub
+            # Here we'll assume you've converted to a playable format
             stream = player.open(format=FORMAT, channels=CHANNELS, rate=24000, output=True)
             stream.write(audio_data)
             stream.stop_stream()
@@ -175,49 +189,133 @@ async def capture_audio():
     stream.close()
     p.terminate()
     
-    return b''.join(frames)
+    # Convert to WAV format for API compatibility
+    audio_data = io.BytesIO()
+    with wave.open(audio_data, 'wb') as wf:
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(p.get_sample_size(FORMAT))
+        wf.setframerate(RATE)
+        wf.writeframes(b''.join(frames))
+    
+    return audio_data.getvalue()
 
 async def transcribe_audio(audio_data):
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "multipart/form-data"
-    }
-    files = {
-        "file": ("audio.wav", audio_data, "audio/wav"),
-        "model": (None, "distil-whisper-large-v3"),
-        "response_format": (None, "json")
-    }
-
     try:
-        response = await asyncio.get_event_loop().run_in_executor(
-            None, lambda: requests.post(GROQ_STT_URL, headers={"Authorization": f"Bearer {GROQ_API_KEY}"}, files=files)
+        # Save audio data to a temporary WAV file
+        temp_file = "temp_audio.wav"
+        with open(temp_file, "wb") as f:
+            f.write(audio_data)
+        
+        # Use local Whisper model via a worker thread
+        return await asyncio.get_event_loop().run_in_executor(
+            None, lambda: transcribe_with_local_whisper(temp_file)
         )
-        response.raise_for_status()
-        return response.json().get("text", "")
-    except requests.RequestException as e:
+    except Exception as e:
         print(f"Error transcribing audio: {e}")
         return ""
 
+def transcribe_with_local_whisper(audio_file):
+    """Transcribe audio using locally installed Whisper model"""
+    import whisper  # Import here to avoid loading the model until needed
+    
+    print("Transcribing with local Whisper model...")
+    # Load the medium model
+    model = whisper.load_model("medium")
+    
+    # Transcribe the audio
+    result = model.transcribe(audio_file)
+    
+    # Clean up temp file
+    try:
+        os.remove(audio_file)
+    except:
+        pass
+        
+    return result["text"]
+
 async def main():
-    webcam_stream = WebcamStream().start()
-    assistant = Assistant()
-
-    while True:
-        # Capture and transcribe audio
-        audio_data = await capture_audio()
-        prompt = await transcribe_audio(audio_data)
+    try:
+        webcam_stream = WebcamStream().start()
+        assistant = Assistant()
         
-        if prompt:
-            image = webcam_stream.read(encode=True)
-            await assistant.answer(prompt, image)
+        print("Assistant started. Press 'q' or ESC to exit.")
+        print("Loading local Whisper model (this may take a moment)...")
         
-        # Display webcam feed
-        cv2.imshow("webcam", webcam_stream.read())
-        if cv2.waitKey(1) in [27, ord("q")]:
-            break
-
-    webcam_stream.stop()
-    cv2.destroyAllWindows()
+        # Pre-load the Whisper model to avoid delay during first transcription
+        await asyncio.get_event_loop().run_in_executor(
+            None, lambda: preload_whisper_model()
+        )
+        
+        while True:
+            # Display webcam feed with status
+            frame = webcam_stream.read()
+            cv2.putText(frame, "Listening...", (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.imshow("Webcam Assistant", frame)
+            
+            # Check for exit
+            key = cv2.waitKey(1)
+            if key in [27, ord("q")]:
+                break
+                
+            # Capture and transcribe audio
+            audio_data = await capture_audio()
+            
+            # Show processing status
+            frame = webcam_stream.read()
+            cv2.putText(frame, "Processing speech...", (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.imshow("Webcam Assistant", frame)
+            cv2.waitKey(1)
+            
+            prompt = await transcribe_audio(audio_data)
+            
+            if prompt.strip():
+                # Display transcribed text
+                frame = webcam_stream.read()
+                # Truncate long text for display
+                display_text = prompt[:50] + "..." if len(prompt) > 50 else prompt
+                cv2.putText(frame, f"You: {display_text}", (10, 30), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                cv2.imshow("Webcam Assistant", frame)
+                cv2.waitKey(1)
+                
+                # Show thinking status
+                frame = webcam_stream.read()
+                cv2.putText(frame, f"You: {display_text}", (10, 30), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                cv2.putText(frame, "Thinking...", (10, 60), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                cv2.imshow("Webcam Assistant", frame)
+                cv2.waitKey(1)
+                
+                # Get response
+                image = webcam_stream.read(encode=True)
+                response = await assistant.answer(prompt, image)
+                
+                # Display response
+                if response:
+                    frame = webcam_stream.read()
+                    display_response = response[:50] + "..." if len(response) > 50 else response
+                    cv2.putText(frame, f"You: {display_text}", (10, 30), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    cv2.putText(frame, f"Assistant: {display_response}", (10, 60), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    cv2.imshow("Webcam Assistant", frame)
+            
+    except Exception as e:
+        print(f"Error in main loop: {e}")
+    finally:
+        if 'webcam_stream' in locals():
+            webcam_stream.stop()
+        cv2.destroyAllWindows()
+        
+def preload_whisper_model():
+    """Pre-load the Whisper model to avoid delay during first transcription"""
+    import whisper
+    print("Loading Whisper medium model...")
+    _ = whisper.load_model("medium")
+    print("Whisper model loaded and ready!")
 
 if __name__ == "__main__":
     asyncio.run(main())
