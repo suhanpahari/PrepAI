@@ -64,7 +64,7 @@ graph TD
 ```
 
 ---
-
+<!--
 ## 📂 Project Structure
 
 ```
@@ -95,7 +95,7 @@ PrepAI/
 │   └── interview.html          # Interview interface page
 └── videos/                     # Directory for stored user recordings
 ```
-
+-->
 ---
 
 ## ⚙️ Installation & Setup
@@ -137,7 +137,7 @@ PrepAI/
 ## 🖼️ UI Preview
 
 ![PrepAI User Interface](https://github.com/user-attachments/assets/c342824d-2d13-45a4-94c3-385f6afcd080)
-*The live interview interface with a question prompt, timer, and video feed.*
+*The landing page.*
 
 ---
 
