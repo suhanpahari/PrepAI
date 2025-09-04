@@ -1,4 +1,8 @@
-# PrepAI 🎓🤖
+
+
+<div align="center">
+
+# PrepAI
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-Web%20Framework-black?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
@@ -6,6 +10,8 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/suhanpahari/PrepAI)](https://github.com/suhanpahari/PrepAI/issues)
 [![Stars](https://img.shields.io/github/stars/suhanpahari/PrepAI?style=social)](https://github.com/suhanpahari/PrepAI/stargazers)
+
+</div>
 
 > **PrepAI** is an AI-powered **interview preparation platform** that simulates real-time interviews with **video, audio, and AI-generated questions**.
 > It records your responses, analyzes performance, and helps you practice effectively in an interactive environment.
