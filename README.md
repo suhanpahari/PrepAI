@@ -1,109 +1,161 @@
-# PrepAI
+# PrepAI 🎓🤖
 
-**AI Interview Conductor**  
-_“AI interview conductor. Under progress...”_
+[![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-Web%20Framework-black?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Status](https://img.shields.io/badge/Status-Active-success?style=flat)]()
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Issues](https://img.shields.io/github/issues/suhanpahari/PrepAI)](https://github.com/suhanpahari/PrepAI/issues)
+[![Stars](https://img.shields.io/github/stars/suhanpahari/PrepAI?style=social)](https://github.com/suhanpahari/PrepAI/stargazers)
 
----
-
-## 🚀 Overview
-
-**PrepAI** is an open-source project aiming to revolutionize technical interview preparation using artificial intelligence. It simulates realistic interview scenarios, evaluates responses, and provides actionable feedback to help users improve their performance.  
-> **Note:** This project is currently in active development.
+> **PrepAI** is an AI-powered **interview preparation platform** that simulates real-time interviews with **video, audio, and AI-generated questions**.
+> It records your responses, analyzes performance, and helps you practice effectively in an interactive environment.
 
 ---
 
 ## ✨ Features
-
-- **AI-Powered Interview Simulation**  
-  Conducts mock interviews and generates technical questions dynamically.
-
-- **Personalized Feedback**  
-  Analyzes responses and offers targeted suggestions for improvement.
-
-- **Progress Tracking (Planned)**  
-  Monitors user growth and highlights strengths and weaknesses over time.
-
-- **Customizable Interview Topics (Planned)**  
-  Select topics and adjust difficulty levels to suit your needs.
+- 🎤 **AI-driven mock interviews** with live video/audio
+- 📑 **Dynamic question sets** powered by Grok API
+- 🎥 **Automatic recording & playback** of interview sessions
+- 🌐 **Web-based interface** – no extra installation needed
+- 📊 **Performance insights** for self-improvement
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Python** (core backend)
-- **HTML, CSS, JavaScript** (frontend interface)
-- **TeX** (for mathematical formatting and rendering)
-- [Other dependencies as listed in `requirements.txt`]
+## 📦 Tech Stack
+![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-Backend-black?logo=flask&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-Frontend-E34F26?logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black)
+![Grok API](https://img.shields.io/badge/Grok%20API-Question%20Generation-orange)
 
 ---
 
-## ⚡ Getting Started
+## 🔧 How It Works
 
-### Prerequisites
+PrepAI follows a seamless, automated workflow to simulate a real interview experience:
 
-- Python 3.x
-- `pip` package manager
+1.  **Start Session**: User launches the app and grants camera/microphone permissions.
+2.  **Generate Questions**: The backend uses the **Grok API** to generate a dynamic set of interview questions.
+3.  **Present Question**: A question is displayed on the screen and the user is prompted to answer.
+4.  **Record Response**: The system simultaneously records the user's **video and audio** response.
+5.  **Process & Analyze**: The recorded audio is transcribed (using Whisper or similar) for future analysis features.
+6.  **Next Question**: The cycle repeats for the next question in the set.
+7.  **Review & Playback**: At the end of the session, the user can review their entire recorded performance.
 
-### Installation
+This closed-loop system provides a powerful platform for self-assessment and improvement.
 
-1. **Clone the repository:**
+```mermaid
+graph TD
+    A[User Starts Interview] --> B{Generate Question via Grok API};
+    B --> C[Display Question];
+    C --> D[Record Video/Audio Response];
+    D --> E[Transcribe & Process];
+    E --> F{More Questions?};
+    F -- Yes --> B;
+    F -- No --> G[Provide Playback & Analysis];
+    G --> H[Session Complete];
+```
+
+---
+
+## 📂 Project Structure
+
+```
+PrepAI/
+├── .gitignore
+├── LICENSE
+├── README.md
+├── app.py                      # Main Flask application (primary)
+├── app_t.py                    # Main Flask application (alternative)
+├── main.py                     # Legacy/utility script
+├── main_t.py                   # Legacy/utility script
+├── ocean_vdo.py                # Video processing module
+├── requirments.txt             # Project dependencies
+├── voice.py                    # Voice/TTS processing module
+├── whis.py                     # Whisper transcription module
+├── interview_recording.webm    # Example recording (gitignored in practice)
+├── temp_audio.wav              # Temporary audio file (gitignored)
+├── vdo.h5                      # Data file (gitignored)
+├── desktop.ini                 # System file (gitignored)
+│
+├── __pycache__/                # Python cache directory
+├── question_set/               # Directory for question data
+├── src/                        # Additional source code
+├── static/                     # CSS, JS, images
+│   └── style.css               # Main stylesheet
+├── templates/                  # HTML templates
+│   ├── index.html              # Main landing page
+│   └── interview.html          # Interview interface page
+└── videos/                     # Directory for stored user recordings
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+1.  **Clone the repository**
     ```bash
     git clone https://github.com/suhanpahari/PrepAI.git
     cd PrepAI
     ```
 
-2. **Install dependencies:**
+2.  **Set up a virtual environment (recommended)**
     ```bash
-    pip install -r requirements.txt
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
     ```
 
-3. **Run the application:**
+3.  **Install dependencies**
     ```bash
-    # Example command (update if your entrypoint is different)
-    python main.py
+    pip install -r requirments.txt
     ```
 
-4. **Access the interface:**  
-   Open your browser and navigate to the address shown in your terminal.
+4.  **Configure Environment Variables**
+    Create a `.env` file in the project root and add your Grok API key:
+    ```env
+    GROK_API_KEY=your_actual_api_key_here
+    ```
+
+5.  **Run the application**
+    ```bash
+    python app_t.py
+    # or
+    python app.py
+    ```
+
+6.  **Open in browser**
+    Navigate to `http://localhost:5000` (or the specified address in the terminal).
+    Allow **camera & microphone access** when prompted → Start your interview! 🚀
 
 ---
 
-## 📂 Repository Structure
+## 🖼️ UI Preview
 
-- `main.py` — Main entry point
-- `requirements.txt` — Python dependencies
-- `static/` — Static assets (CSS, JS, images)
-- `templates/` — HTML templates
-- `README.md` — This file
+![PrepAI User Interface](https://github.com/user-attachments/assets/c342824d-2d13-45a4-94c3-385f6afcd080)
+*The live interview interface with a question prompt, timer, and video feed.*
 
 ---
 
-## 🤝 Contributing
+## 🎬 Demo Video
 
-Contributions are welcome!  
-To get involved:
+A full demonstration of the PrepAI workflow, from starting the interview to reviewing the recording.
 
-1. Fork this repository
-2. Create a new branch (`git checkout -b feature/my-feature`)
-3. Commit your changes
-4. Push to your fork
-5. Open a Pull Request
-
-Please review existing issues and open a new one to discuss major changes before starting.
+[▶ **Watch the full demo video on Google Drive**](https://drive.google.com/file/d/14pLjoeeXmaWpVqb5PBax5YMzAZW4d-AB/view?usp=sharing)
 
 ---
 
-## 📄 License
+## 👥 Contributors
 
-[Specify your license here, e.g., MIT. Don’t forget to include a LICENSE file in your repo.]
+This project was brought to life by:
 
----
-
-## 🙏 Acknowledgements
-
-- Inspired by the need for accessible, high-quality technical interview prep.
-- Built with love and Python.
+*   **Mansha Chaudhary**
+*   **Pradumn Pandey**
+*   **Dr. S.C. Kumain** (Guide)
+*   **Suhan Pahari** *(Maintainer)*
 
 ---
 
-> _This project is under active development. Star and watch for updates!_
+## 📜 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
