@@ -153,9 +153,9 @@ A full demonstration of the PrepAI workflow, from starting the interview to revi
 
 This project was brought to life by:
 
-*   **Suhan Pahari** *(Maintainer)*
-*   **Mansha Chaudhary**
-*   **Pradumn Pandey**
+*   **[Suhan Pahari](https://suhanpahari.github.io/)** *(Maintainer)*
+*   **[Mansha Chaudhary](https://www.linkedin.com/in/manshachaudhary)**
+*   **[Pradumn Pandey](https://www.linkedin.com/in/pradumnpandey/)**
 *   **Dr. S.C. Kumain** (Guide)
 
 ---
