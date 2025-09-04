@@ -95,9 +95,9 @@ PrepAI/
 │   └── interview.html          # Interview interface page
 └── videos/                     # Directory for stored user recordings
 ```
--->
----
 
+---
+-->
 ## ⚙️ Installation & Setup
 
 1.  **Clone the repository**
