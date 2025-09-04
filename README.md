@@ -126,8 +126,6 @@ PrepAI/
 5.  **Run the application**
     ```bash
     python app_t.py
-    # or
-    python app.py
     ```
 
 6.  **Open in browser**
